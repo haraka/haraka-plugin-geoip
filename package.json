@@ -1,0 +1,39 @@
+{
+  "name": "haraka-plugin-geoip",
+  "version": "1.0.0",
+  "description": "provide geographic information about mail senders.",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "./run_tests",
+    "lint": "eslint index.js",
+    "coverage": "./node_modules/.bin/istanbul cover ./run_tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/haraka/haraka-plugin-geoip.git"
+  },
+  "keywords": [
+    "haraka",
+    "email",
+    "geoip",
+    "smtp",
+    "mta"
+  ],
+  "author": "Matt Simerson <matt@tnpi.net>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/haraka/haraka-plugin-geoip/issues"
+  },
+  "homepage": "https://github.com/haraka/haraka-plugin-geoip#readme",
+  "devDependencies": {
+    "haraka-test-fixtures": "^1.0.9",
+    "nodeunit": "^0.10.2"
+  },
+  "dependencies": {
+    "haraka-net-utils": "^1.0.0",
+    "maxmind": "^0.6.0"
+  }
+}
