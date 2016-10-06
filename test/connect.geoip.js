@@ -15,8 +15,6 @@ exports.register = {
   setUp : function (done) {
     this.plugin = new fixtures.plugin('connect.geoip');
 
-    try { this.plugin.mm_loads = require('maxmind'); }
-    catch (ignore) {}
     try { this.plugin.gl_loads = require('geoip-lite'); }
     catch (ignore) {}
 
@@ -29,31 +27,10 @@ exports.register = {
     test.ok(this.plugin.cfg.main);
     test.done();
   },
-  'maxmind loaded': function (test) {
-    if (this.plugin.mm_loads) {
-      test.expect(1);
-      test.ok(this.plugin.maxmind);
-    }
-    test.done();
-  },
   'geoip-lite loaded': function (test) {
-    if (this.plugin.gl_loads) {
-      test.expect(1);
-      this.plugin.load_geoip_lite();
-      test.ok(this.plugin.geoip);
-    }
-    test.done();
-  },
-};
-
-exports.load_maxmind = {
-  setUp : _set_up,
-  'maxmind module loads if installed': function (test) {
-    var p = this.plugin;
-    if (this.plugin.load_maxmind()) {
-      test.expect(1);
-      test.ok(p.maxmind);
-    }
+    test.expect(1);
+    this.plugin.load_geoip_lite();
+    test.ok(this.plugin.geoip);
     test.done();
   },
 };
@@ -70,68 +47,30 @@ exports.load_geoip_lite = {
   },
 };
 
-exports.lookup_maxmind = {
-  setUp : function (done) {
-    this.plugin = new fixtures.plugin('connect.geoip');
-    this.plugin.load_geoip_ini();
-
-    this.connection = Connection.createConnection();
-
-    this.plugin.load_maxmind();
-    done();
-  },
-  'servedby.tnpi.net': function (test) {
-    var cb = function() {
-      if (this.plugin.maxmind && this.plugin.maxmind.dbsLoaded) {
-        test.expect(3);
-        var r = this.connection.results.get('connect.geoip');
-        test.equal('53837', r.asn);
-        test.equal('US', r.country);
-        test.equal('NA', r.continent);
-        if (r.asn_org) {
-          test.expect(4);
-          test.equal('ServedBy the Net, LLC.', r.asn_org);
-        }
-      }
-      test.done();
-    }.bind(this);
-
-    this.connection.remote.ip='192.48.85.146';
-    this.plugin.cfg.main.calc_distance=true;
-    this.plugin.lookup_maxmind(cb, this.connection);
-  },
-};
-
 // ServedBy ll: [ 47.6738, -122.3419 ],
 // WMISD  [ 38, -97 ]
 
 exports.get_geoip = {
   setUp : function (done) {
     this.plugin = new fixtures.plugin('connect.geoip');
-
-    try { this.plugin.mm_loads = require('maxmind'); }
-    catch (ignore) {}
-    try { this.plugin.gl_loads = require('geoip-lite'); }
-    catch (ignore) {}
-
     this.plugin.register();
     done();
   },
   'no IP fails': function (test) {
-    if (!this.plugin.hasProvider) { return test.done(); }
+    // if (!this.plugin.hasProvider) { return test.done(); }
     test.expect(1);
     test.ok(!this.plugin.get_geoip());
     test.done();
   },
   'ipv4 private fails': function (test) {
-    if (!this.plugin.hasProvider) { return test.done(); }
+    // if (!this.plugin.hasProvider) { return test.done(); }
     test.expect(1);
     test.ok(!this.plugin.get_geoip('192.168.85.146'));
     test.done();
   },
 };
 
-exports.lookup_geoip = {
+exports.lookup_geoip_lite = {
   setUp : function (done) {
     this.plugin = new fixtures.plugin('connect.geoip');
     this.plugin.load_geoip_ini();
@@ -151,7 +90,7 @@ exports.lookup_geoip = {
       test.done();
     }.bind(this);
     this.connection.remote.ip='192.48.85.146';
-    this.plugin.lookup_geoip(cb, this.connection);
+    this.plugin.lookup_geoip_lite(cb, this.connection);
   },
   'michigan: lat + long': function (test) {
     var cb = function (rc) {
@@ -165,39 +104,7 @@ exports.lookup_geoip = {
       test.done();
     }.bind(this);
     this.connection.remote.ip='199.176.179.3';
-    this.plugin.lookup_geoip(cb, this.connection);
-  },
-};
-
-exports.get_geoip_maxmind = {
-  setUp : function (done) {
-    this.plugin = new fixtures.plugin('connect.geoip');
-    this.plugin.load_geoip_ini();
-    var p = this.plugin;
-    this.plugin.load_maxmind();
-    if (!p.maxmind) {
-      p.logerror("maxmind not loaded!");
-      return done();
-    }
-    if (!p.maxmind.dbsLoaded) {
-      p.logerror("no maxmind DBs loaded!");
-    }
-    done();
-  },
-  'ipv4 public passes': function (test) {
-    if (!this.plugin.maxmind) { return test.done(); }
-    if (!this.plugin.maxmind.dbsLoaded) { return test.done(); }
-    test.expect(1);
-    test.ok(this.plugin.get_geoip_maxmind('192.48.85.146'));
-    test.done();
-  },
-  'ipv6 public passes': function (test) {
-    if (!this.plugin.maxmind) { return test.done(); }
-    if (!this.plugin.maxmind.dbsLoaded) { return test.done(); }
-    test.expect(1);
-    var r = this.plugin.get_geoip_maxmind('2607:f060:b008:feed::6');
-    test.ok(r);
-    test.done();
+    this.plugin.lookup_geoip_lite(cb, this.connection);
   },
 };
 

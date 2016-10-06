@@ -1,5 +1,5 @@
 {
-  "name": "haraka-plugin-geoip",
+  "name": "haraka-plugin-geoip-lite",
   "version": "1.0.0",
   "description": "provide geographic information about mail senders.",
   "main": "index.js",
@@ -35,6 +35,6 @@
   },
   "dependencies": {
     "haraka-net-utils": "^1.0.0",
-    "maxmind": "^0.6.0"
+    "geoip-lite": "*"
   }
 }

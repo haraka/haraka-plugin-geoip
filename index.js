@@ -1,19 +1,13 @@
 'use strict';
 
-var fs        = require('fs');
 var net       = require('net');
 
 var net_utils = require('haraka-net-utils');
 
 exports.register = function () {
   var plugin = this;
-
   plugin.load_geoip_ini();
-  plugin.hasProvider = plugin.load_maxmind();
-
-  if (!plugin.hasProvider) {
-    plugin.hasProvider = plugin.load_geoip_lite();
-  }
+  plugin.load_geoip_lite();
 };
 
 exports.load_geoip_ini = function () {
@@ -28,45 +22,6 @@ exports.load_geoip_ini = function () {
   function () {
     plugin.load_geoip_ini();
   });
-};
-
-exports.load_maxmind = function () {
-  var plugin = this;
-
-  try {
-    plugin.maxmind = require('maxmind');
-  }
-  catch (e) {
-    plugin.logerror(e);
-    plugin.logerror("unable to load maxmind, try\n\n\t" +
-         "'npm install -g maxmind'\n\n");
-    return;
-  }
-
-  var dbs = ['GeoIPCity', 'GeoIP', 'GeoIPASNum', 'GeoISP',
-             'GeoIPCityv6', 'GeoIPv6', 'GeoIPASNumv6',
-             'GeoIPNetSpeedCell', 'GeoIPOrg', 'GeoLiteCityV6', 'GeoLiteCity'];
-  var dbsFound = [];
-
-  var dbdir = plugin.cfg.main.dbdir || '/usr/local/share/GeoIP/';
-  for (var i=0; i < dbs.length; i++) {
-    var path = dbdir + dbs[i] + '.dat';
-    if (!fs.existsSync(path)) continue;
-    dbsFound.push(path);
-  }
-
-  plugin.maxmind.dbsLoaded = dbsFound.length;
-  if (dbsFound.length === 0) {
-    plugin.logerror('maxmind loaded but no GeoIP DBs found!');
-    return;
-  }
-
-  plugin.loginfo('provider maxmind with ' + dbsFound.length + ' DBs');
-  plugin.maxmind.init(dbsFound, {indexCache: true, checkForUpdates: true});
-  plugin.register_hook('connect',   'lookup_maxmind');
-  plugin.register_hook('data_post', 'add_headers');
-
-  return true;
 };
 
 exports.load_geoip_lite = function () {
@@ -88,90 +43,13 @@ exports.load_geoip_lite = function () {
   }
 
   plugin.loginfo('provider geoip-lite');
-  plugin.register_hook('connect',   'lookup_geoip');
+  plugin.register_hook('connect',   'lookup_geoip_lite');
   plugin.register_hook('data_post', 'add_headers');
 
   return true;
 };
 
-exports.get_maxmind_asn = function (connection) {
-  var plugin = this;
-
-  var asn = plugin.maxmind.getAsn(connection.remote.ip);
-  if (!asn) return;
-
-  var match = asn.match(/^(?:AS)([0-9]+)\s+(.*)$/);
-  if (!match) {
-    connection.logerror(plugin, 'unexpected AS format: ' + asn);
-    return;
-  }
-
-  var report_as = plugin;
-  if (plugin.cfg.asn && plugin.cfg.asn.report_as) {
-    report_as = { name: plugin.cfg.asn.report_as };
-  }
-  connection.results.add(report_as,
-          { emit: true, asn: match[1], org: match[2] });
-};
-
-exports.lookup_maxmind = function (next, connection) {
-  var plugin = this;
-
-  if (!plugin.maxmind) { return next(); }
-  if (!plugin.maxmind.dbsLoaded) { return next(); }
-
-  var show = [];
-
-  plugin.get_maxmind_asn(connection);
-
-  var loc = plugin.get_geoip_maxmind(connection.remote.ip);
-  if (!loc) return next();
-
-  if (loc.continentCode && loc.continentCode !== '--') {
-    connection.results.add(plugin, {continent: loc.continentCode});
-    show.push(loc.continentCode);
-  }
-  var cc = loc.countryCode || loc.code;
-  if (cc && cc !== '--') {
-    connection.results.add(plugin, {country: cc});
-    show.push(cc);
-  }
-  if (loc.city && loc.city !== '--') {
-    connection.results.add(plugin, {city: loc.city});
-    if (plugin.cfg.main.show_city) show.push(loc.city);
-  }
-  if (loc.region && loc.region !== '--') {
-    connection.results.add(plugin, {region: loc.region});
-    if (plugin.cfg.main.show_region) show.push(loc.region);
-  }
-  if (loc.latitude) {
-    connection.results.add(plugin, {ll: [loc.latitude, loc.longitude]});
-    connection.results.add(plugin, {
-      geo: {
-        lat: loc.latitude,
-        lon: loc.longitude
-      }
-    });
-  }
-
-  if (show.length === 0) return next();
-
-  if (!plugin.cfg.main.calc_distance) {
-    connection.results.add(plugin, {human: show.join(', '), emit:true});
-    return next();
-  }
-
-  function calcDone (err, distance) {
-    if (err) { connection.results.add(plugin, {err: err}); }
-    if (distance) { show.push(distance+'km'); }
-    connection.results.add(plugin, {human: show.join(', '), emit:true});
-    return next();
-  }
-  plugin.calculate_distance(connection,
-            [loc.latitude, loc.longitude], calcDone);
-};
-
-exports.lookup_geoip = function (next, connection) {
+exports.lookup_geoip_lite = function (next, connection) {
   var plugin = this;
 
   // geoip results look like this:
@@ -216,10 +94,7 @@ exports.get_geoip = function (ip) {
   if (!net.isIPv4(ip) && !net.isIPv6(ip)) return;
   if (net_utils.is_private_ip(ip)) return;
 
-  var res = plugin.get_geoip_maxmind(ip);
-  if (!res) {
-    res = plugin.get_geoip_lite(ip);
-  }
+  var res = plugin.get_geoip_lite(ip);
   if (!res) return;
 
   var show = [];
@@ -230,34 +105,6 @@ exports.get_geoip = function (ip) {
   res.human = show.join(', ');
 
   return res;
-};
-
-exports.get_geoip_maxmind = function (ip) {
-  var plugin = this;
-  if (!plugin.maxmind) return;
-
-  var ipv6 = net.isIPv6(ip);
-
-  var result;
-  try {
-    // Try GeoIPCity first
-    result = ipv6 ? plugin.maxmind.getLocationV6(ip)
-                  : plugin.maxmind.getLocation(ip);
-  }
-  catch (e) {
-    plugin.logerror(e.message);
-  }
-  if (!result) {
-    try {
-      // then try GeoIP country
-      result = ipv6 ? plugin.maxmind.getCountryV6(ip)
-                    : plugin.maxmind.getCountry(ip);
-    }
-    catch (e) {
-      plugin.logerror(e.message);
-    }
-  }
-  return result;
 };
 
 exports.get_geoip_lite = function (ip) {
