@@ -2,3 +2,7 @@ engines:
   eslint:
     enabled: true
     channel: "eslint-3"
+
+ratings:
+   paths:
+   - "**.js"
