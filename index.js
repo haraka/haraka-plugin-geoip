@@ -113,11 +113,11 @@ exports.lookup_maxmind = function (next, connection) {
   }
   if (loc.city && loc.city !== '--') {
     connection.results.add(plugin, {city: loc.city});
-    if (plugin.cfg.main.show_city) show.push(loc.city);
+    if (plugin.cfg.show.city) show.push(loc.city);
   }
   if (loc.region && loc.region !== '--') {
     connection.results.add(plugin, {region: loc.region});
-    if (plugin.cfg.main.show_region) show.push(loc.region);
+    if (plugin.cfg.show.region) show.push(loc.region);
   }
   if (loc.latitude) {
     connection.results.add(plugin, {ll: [loc.latitude, loc.longitude]});
