@@ -1,3 +1,7 @@
+[![Build Status][ci-img]][ci-url]
+[![Code Coverage][cov-img]][cov-url]
+[![Code Climate][clim-img]][clim-url]
+[![NPM][npm-img]][npm-url]
 
 # geoip
 
@@ -63,16 +67,16 @@ public IP of your mail server. If Haraka is bound to a private IP, net\_utils
 will attempt to determine your public IP. If that doesn't work, edit
 config/smtp.ini and set `public_ip`.
 
+Set a connection result to true if the distance exceeds this many kilometers.
+
+- too\_far=4000
+
 - show.city
 
 show city data in logs and headers. City data is less accurate than country.
 
 - show.region in logs and headers. Regional data are US states, Canadian
   provinces and such.
-
-Set a connection result to true if the distance exceeds this many kilometers.
-
-- too\_far=4000
 
 
 # SPAM PREDICTION WITH DISTANCE
@@ -82,8 +86,8 @@ Set a connection result to true if the distance exceeds this many kilometers.
     "For ham, 90% of the messages travel about 4,000 km or less. On the
     other hand, for spam, only 28% of messages stay within this range."
 
-Observations in 2014 suggest that geodesic distance continues to be an
-excellent predictor of spam.
+Observations in 2014-2016 suggest that geodesic distance continues to be
+highly correlated with spam.
 
 
 # LIMITATIONS
@@ -105,7 +109,10 @@ MaxMind: http://www.maxmind.com/
 Databases: http://geolite.maxmind.com/download/geoip/database
 
 
-# TODO
-
-Keep an eye on node-geoip and see if they add ASN support. This would be an
-alternative to connect.asn which uses a DNS lookup to retrieve the ASN.
+[ci-img]: https://travis-ci.org/haraka/haraka-plugin-geoip.svg
+[ci-url]: https://travis-ci.org/haraka/haraka-plugin-geoip
+[cov-img]: https://codecov.io/github/haraka/haraka-plugin-geoip/coverage.svg
+[cov-url]: https://codecov.io/github/haraka/haraka-plugin-geoip
+[clim-img]: https://codeclimate.com/github/haraka/haraka-plugin-geoip/badges/gpa.svg
+[clim-url]: https://codeclimate.com/github/haraka/haraka-plugin-geoip
+[npm-img]: https://nodei.co/npm/haraka-plugin-geoip.png

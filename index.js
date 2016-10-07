@@ -16,9 +16,9 @@ exports.load_geoip_ini = function () {
   var plugin = this;
   plugin.cfg = plugin.config.get('geoip.ini', {
     booleans: [
-      '+main.show_city',
-      '+main.show_region',
       '-main.calc_distance',
+      '+show.city',
+      '+show.region',
     ],
   },
   function () {
