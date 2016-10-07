@@ -132,6 +132,7 @@ exports.calculate_distance = {
             this.connection,
             [38, -97],
             function (err, d) {
+              if (err) console.error(err);
               test.expect(1);
               test.ok(d);
               test.done();
@@ -147,5 +148,5 @@ exports.haversine = {
     test.equal(true, (r > 2000), r);
     test.equal(true, (r < 2500), r);
     test.done();
-  }
+  },
 };
