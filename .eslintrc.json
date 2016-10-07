@@ -1,0 +1,6 @@
+{
+  "plugins": [ "haraka" ],
+  "rules": {
+    // "comma-dangle": [2, "only-multiline" ]
+  }
+}
