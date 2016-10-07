@@ -116,3 +116,4 @@ Databases: http://geolite.maxmind.com/download/geoip/database
 [clim-img]: https://codeclimate.com/github/haraka/haraka-plugin-geoip/badges/gpa.svg
 [clim-url]: https://codeclimate.com/github/haraka/haraka-plugin-geoip
 [npm-img]: https://nodei.co/npm/haraka-plugin-geoip.png
+[npm-url]: https://www.npmjs.com/package/haraka-plugin-geoip
