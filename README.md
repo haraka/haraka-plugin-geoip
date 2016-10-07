@@ -13,7 +13,7 @@ This plugin supports for several geoip modules:
     * [maxmind](https://github.com/runk/node-maxmind) 1.0+ (maxmind v2)
     * [geoip-lite](https://github.com/bluesmoon/node-geoip)
 
-Support for geoip-lite is published separately as [haraka-plugin-geoip-lite]().
+Support for `geoip-lite` is published to npm separately as [haraka-plugin-geoip-lite](https://www.npmjs.com/package/haraka-plugin-geoip-lite).
 
 # INSTALL
 
