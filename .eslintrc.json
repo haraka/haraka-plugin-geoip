@@ -21,5 +21,4 @@
     "no-shadow": 2,
     "no-unused-vars": [ 1, { "args": "none" }],
     "no-console": 0
-  }
 }
