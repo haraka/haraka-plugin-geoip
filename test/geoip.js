@@ -13,11 +13,7 @@ var _set_up = function (done) {
 
 exports.register = {
   setUp : function (done) {
-    this.plugin = new fixtures.plugin('connect.geoip');
-
-    try { this.plugin.gl_loads = require('geoip-lite'); }
-    catch (ignore) {}
-
+    this.plugin = new fixtures.plugin('geoip');
     this.plugin.register();
     done();
   },
@@ -52,7 +48,7 @@ exports.load_geoip_lite = {
 
 exports.get_geoip = {
   setUp : function (done) {
-    this.plugin = new fixtures.plugin('connect.geoip');
+    this.plugin = new fixtures.plugin('geoip');
     this.plugin.register();
     done();
   },
@@ -72,7 +68,7 @@ exports.get_geoip = {
 
 exports.lookup_geoip_lite = {
   setUp : function (done) {
-    this.plugin = new fixtures.plugin('connect.geoip');
+    this.plugin = new fixtures.plugin('geoip');
     this.plugin.load_geoip_ini();
     this.connection = Connection.createConnection();
     this.plugin.load_geoip_lite();
@@ -82,7 +78,7 @@ exports.lookup_geoip_lite = {
     var cb = function (rc) {
       if (this.plugin.geoip) {
         test.expect(3);
-        var r = this.connection.results.get('connect.geoip');
+        var r = this.connection.results.get('geoip');
         test.equal(47.6738, r.ll[0]);
         test.equal(-122.3419, r.ll[1]);
         test.ok(r);
@@ -96,7 +92,7 @@ exports.lookup_geoip_lite = {
     var cb = function (rc) {
       if (this.plugin.geoip) {
         test.expect(3);
-        var r = this.connection.results.get('connect.geoip');
+        var r = this.connection.results.get('geoip');
         test.equal(44.0387, r.ll[0]);
         test.equal(-84.8414, r.ll[1]);
         test.ok(r);
@@ -110,7 +106,7 @@ exports.lookup_geoip_lite = {
 
 exports.get_geoip_lite = {
   setUp : function (done) {
-    this.plugin = new fixtures.plugin('connect.geoip');
+    this.plugin = new fixtures.plugin('geoip');
     this.plugin.load_geoip_ini();
     this.plugin.load_geoip_lite();
     done();
