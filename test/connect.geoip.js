@@ -14,12 +14,6 @@ var _set_up = function (done) {
 exports.register = {
   setUp : function (done) {
     this.plugin = new fixtures.plugin('connect.geoip');
-
-    try { this.plugin.mm_loads = require('maxmind'); }
-    catch (ignore) {}
-    try { this.plugin.gl_loads = require('geoip-lite'); }
-    catch (ignore) {}
-
     this.plugin.register();
     done();
   },
@@ -36,14 +30,6 @@ exports.register = {
     }
     test.done();
   },
-  'geoip-lite loaded': function (test) {
-    if (this.plugin.gl_loads) {
-      test.expect(1);
-      this.plugin.load_geoip_lite();
-      test.ok(this.plugin.geoip);
-    }
-    test.done();
-  },
 };
 
 exports.load_maxmind = {
@@ -53,18 +39,6 @@ exports.load_maxmind = {
     if (this.plugin.load_maxmind()) {
       test.expect(1);
       test.ok(p.maxmind);
-    }
-    test.done();
-  },
-};
-
-exports.load_geoip_lite = {
-  setUp : _set_up,
-  'geoip-lite module loads if installed': function (test) {
-    var p = this.plugin;
-    if (this.plugin.load_geoip_lite()) {
-      test.expect(1);
-      test.ok(p.geoip);
     }
     test.done();
   },
@@ -108,12 +82,6 @@ exports.lookup_maxmind = {
 exports.get_geoip = {
   setUp : function (done) {
     this.plugin = new fixtures.plugin('connect.geoip');
-
-    try { this.plugin.mm_loads = require('maxmind'); }
-    catch (ignore) {}
-    try { this.plugin.gl_loads = require('geoip-lite'); }
-    catch (ignore) {}
-
     this.plugin.register();
     done();
   },
@@ -128,44 +96,6 @@ exports.get_geoip = {
     test.expect(1);
     test.ok(!this.plugin.get_geoip('192.168.85.146'));
     test.done();
-  },
-};
-
-exports.lookup_geoip = {
-  setUp : function (done) {
-    this.plugin = new fixtures.plugin('connect.geoip');
-    this.plugin.load_geoip_ini();
-    this.connection = Connection.createConnection();
-    this.plugin.load_geoip_lite();
-    done();
-  },
-  'seattle: lat + long': function (test) {
-    var cb = function (rc) {
-      if (this.plugin.geoip) {
-        test.expect(3);
-        var r = this.connection.results.get('connect.geoip');
-        test.equal(47.6738, r.ll[0]);
-        test.equal(-122.3419, r.ll[1]);
-        test.ok(r);
-      }
-      test.done();
-    }.bind(this);
-    this.connection.remote.ip='192.48.85.146';
-    this.plugin.lookup_geoip(cb, this.connection);
-  },
-  'michigan: lat + long': function (test) {
-    var cb = function (rc) {
-      if (this.plugin.geoip) {
-        test.expect(3);
-        var r = this.connection.results.get('connect.geoip');
-        test.equal(44.0387, r.ll[0]);
-        test.equal(-84.8414, r.ll[1]);
-        test.ok(r);
-      }
-      test.done();
-    }.bind(this);
-    this.connection.remote.ip='199.176.179.3';
-    this.plugin.lookup_geoip(cb, this.connection);
   },
 };
 
@@ -197,42 +127,6 @@ exports.get_geoip_maxmind = {
     test.expect(1);
     var r = this.plugin.get_geoip_maxmind('2607:f060:b008:feed::6');
     test.ok(r);
-    test.done();
-  },
-};
-
-exports.get_geoip_lite = {
-  setUp : function (done) {
-    this.plugin = new fixtures.plugin('connect.geoip');
-    this.plugin.load_geoip_ini();
-    this.plugin.load_geoip_lite();
-    done();
-  },
-  'no IP fails': function (test) {
-    if (!this.plugin.geoip) {
-      this.plugin.logerror("geoip-lite not loaded!");
-      return test.done();
-    }
-    test.expect(1);
-    test.ok(!this.plugin.get_geoip_lite());
-    test.done();
-  },
-  'ipv4 public passes': function (test) {
-    if (!this.plugin.geoip) {
-      this.plugin.logerror("geoip-lite not loaded!");
-      return test.done();
-    }
-    test.expect(1);
-    test.ok(this.plugin.get_geoip_lite('192.48.85.146'));
-    test.done();
-  },
-  'ipv4 private fails': function (test) {
-    if (!this.plugin.geoip) {
-      this.plugin.logerror("geoip-lite not loaded!");
-      return test.done();
-    }
-    test.expect(1);
-    test.ok(!this.plugin.get_geoip_lite('192.168.85.146'));
     test.done();
   },
 };

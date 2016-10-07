@@ -9,11 +9,7 @@ exports.register = function () {
   var plugin = this;
 
   plugin.load_geoip_ini();
-  plugin.hasProvider = plugin.load_maxmind();
-
-  if (!plugin.hasProvider) {
-    plugin.hasProvider = plugin.load_geoip_lite();
-  }
+  plugin.load_maxmind();
 };
 
 exports.load_geoip_ini = function () {
@@ -69,31 +65,6 @@ exports.load_maxmind = function () {
   return true;
 };
 
-exports.load_geoip_lite = function () {
-  var plugin = this;
-
-  try {
-    plugin.geoip = require('geoip-lite');
-  }
-  catch (e) {
-    plugin.logerror("unable to load geoip-lite, try\n\n" +
-              "\t'npm install -g geoip-lite'\n\n");
-    return;
-  }
-
-  if (!plugin.geoip) {
-    // geoip-lite dropped node 0.8 support, it may not have loaded
-    plugin.logerror('unable to load geoip-lite');
-    return;
-  }
-
-  plugin.loginfo('provider geoip-lite');
-  plugin.register_hook('connect',   'lookup_geoip');
-  plugin.register_hook('data_post', 'add_headers');
-
-  return true;
-};
-
 exports.get_maxmind_asn = function (connection) {
   var plugin = this;
 
@@ -106,11 +77,7 @@ exports.get_maxmind_asn = function (connection) {
     return;
   }
 
-  var report_as = plugin;
-  if (plugin.cfg.asn && plugin.cfg.asn.report_as) {
-    report_as = { name: plugin.cfg.asn.report_as };
-  }
-  connection.results.add(report_as,
+  connection.results.add(plugin,
           { emit: true, asn: match[1], org: match[2] });
 };
 
@@ -171,45 +138,6 @@ exports.lookup_maxmind = function (next, connection) {
             [loc.latitude, loc.longitude], calcDone);
 };
 
-exports.lookup_geoip = function (next, connection) {
-  var plugin = this;
-
-  // geoip results look like this:
-  // range: [ 3479299040, 3479299071 ],
-  //    country: 'US',
-  //    region: 'CA',
-  //    city: 'San Francisco',
-  //    ll: [37.7484, -122.4156]
-
-  if (!plugin.geoip) {
-    connection.logerror(plugin, 'geoip-lite not loaded');
-    return next();
-  }
-
-  var r = plugin.get_geoip_lite(connection.remote.ip);
-  if (!r) { return next(); }
-
-  connection.results.add(plugin, r);
-
-  var show = [];
-  if (r.country  && r.country !== '--') show.push(r.country);
-  if (r.region   && plugin.cfg.main.show_region) { show.push(r.region); }
-  if (r.city     && plugin.cfg.main.show_city  ) { show.push(r.city); }
-
-  if (show.length === 0) return next();
-
-  if (!plugin.cfg.main.calc_distance) {
-    connection.results.add(plugin, {human: show.join(', '), emit:true});
-    return next();
-  }
-
-  plugin.calculate_distance(connection, r.ll, function (err, distance) {
-    if (distance) show.push(distance+'km');
-    connection.results.add(plugin, {human: show.join(', '), emit:true});
-    return next();
-  });
-};
-
 exports.get_geoip = function (ip) {
   var plugin = this;
   if (!ip) return;
@@ -217,9 +145,6 @@ exports.get_geoip = function (ip) {
   if (net_utils.is_private_ip(ip)) return;
 
   var res = plugin.get_geoip_maxmind(ip);
-  if (!res) {
-    res = plugin.get_geoip_lite(ip);
-  }
   if (!res) return;
 
   var show = [];
@@ -257,20 +182,6 @@ exports.get_geoip_maxmind = function (ip) {
       plugin.logerror(e.message);
     }
   }
-  return result;
-};
-
-exports.get_geoip_lite = function (ip) {
-  var plugin = this;
-  if (!plugin.geoip) return;
-  if (!net.isIPv4(ip)) return;
-
-  var result = plugin.geoip.lookup(ip);
-  if (result && result.ll) {
-    result.latitude = result.ll[0];
-    result.longitude = result.ll[1];
-  }
-
   return result;
 };
 
