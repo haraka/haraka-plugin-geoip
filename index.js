@@ -1,10 +1,12 @@
-'use strict';
-
 var fs        = require('fs');
 var net       = require('net');
 var path      = require('path');
 
 var net_utils = require('haraka-net-utils');
+
+function ucFirst (string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
 
 exports.register = function () {
   var plugin = this;
@@ -27,12 +29,9 @@ exports.load_geoip_ini = function () {
   });
 
   // legacy settings
-  if (plugin.cfg.main.show_city) {
-    plugin.cfg.show.city = plugin.cfg.main.show_city;
-  }
-  if (plugin.cfg.main.show_region) {
-    plugin.cfg.show.region = plugin.cfg.main.show_region;
-  }
+  var m = plugin.cfg.main;
+  if (m.show_city  ) plugin.cfg.show.city = m.show_city;
+  if (m.show_region) plugin.cfg.show.region = m.show_region;
 };
 
 exports.load_maxmind = function () {
@@ -51,17 +50,13 @@ exports.load_maxmind = function () {
   plugin.dbsLoaded = 0;
   var dbdir = plugin.cfg.main.dbdir || '/usr/local/share/GeoIP/';
 
-  var cityDbPath = path.join(dbdir, 'GeoLite2-City.mmdb');
-  if (fs.existsSync(cityDbPath)) {
-    plugin.cityLookup = plugin.maxmind.open(cityDbPath);
-    plugin.dbsLoaded++;
-  }
-
-  var countryDbPath = path.join(dbdir, 'GeoLite2-Country.mmdb');
-  if (fs.existsSync(countryDbPath)) {
-    plugin.countryLookup = plugin.maxmind.open(countryDbPath);
-    plugin.dbsLoaded++;
-  }
+  ['city', 'country'].forEach(function (db) {
+    var dbPath = path.join(dbdir, 'GeoLite2-' + ucFirst(db) + '.mmdb');
+    if (fs.existsSync(dbPath)) {
+      plugin[db + 'Lookup'] = plugin.maxmind.open(dbPath);
+      plugin.dbsLoaded++;
+    }
+  });
 
   if (plugin.dbsLoaded === 0) {
     plugin.logerror('maxmind loaded but no GeoIP DBs found!');
