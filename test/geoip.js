@@ -5,8 +5,8 @@ var fixtures     = require('haraka-test-fixtures');
 var Connection   = fixtures.connection;
 
 var _set_up = function (done) {
-  this.plugin = new fixtures.plugin('../index');
-  this.plugin.load_geoip_ini();
+  this.plugin = new fixtures.plugin('geoip');
+  this.plugin.register();
   this.connection = Connection.createConnection();
   done();
 };
@@ -45,27 +45,14 @@ exports.load_maxmind = {
 };
 
 exports.lookup_maxmind = {
-  setUp : function (done) {
-    this.plugin = new fixtures.plugin('geoip');
-    this.plugin.load_geoip_ini();
-
-    this.connection = Connection.createConnection();
-
-    this.plugin.load_maxmind();
-    done();
-  },
+  setUp : _set_up,
   'servedby.tnpi.net': function (test) {
     var cb = function() {
-      if (this.plugin.maxmind && this.plugin.maxmind.dbsLoaded) {
-        test.expect(3);
+      if (this.plugin.maxmind && this.plugin.dbsLoaded) {
+        test.expect(2);
         var r = this.connection.results.get('geoip');
-        test.equal('53837', r.asn);
         test.equal('US', r.country);
         test.equal('NA', r.continent);
-        if (r.asn_org) {
-          test.expect(4);
-          test.equal('ServedBy the Net, LLC.', r.asn_org);
-        }
       }
       test.done();
     }.bind(this);
@@ -76,8 +63,8 @@ exports.lookup_maxmind = {
   },
 };
 
-// ServedBy ll: [ 47.6738, -122.3419 ],
-// WMISD  [ 38, -97 ]
+// // ServedBy ll: [ 47.6738, -122.3419 ],
+// // WMISD  [ 38, -97 ]
 
 exports.get_geoip = {
   setUp : function (done) {
@@ -109,21 +96,21 @@ exports.get_geoip_maxmind = {
       p.logerror("maxmind not loaded!");
       return done();
     }
-    if (!p.maxmind.dbsLoaded) {
+    if (!p.dbsLoaded) {
       p.logerror("no maxmind DBs loaded!");
     }
     done();
   },
   'ipv4 public passes': function (test) {
     if (!this.plugin.maxmind) { return test.done(); }
-    if (!this.plugin.maxmind.dbsLoaded) { return test.done(); }
+    if (!this.plugin.dbsLoaded) { return test.done(); }
     test.expect(1);
     test.ok(this.plugin.get_geoip_maxmind('192.48.85.146'));
     test.done();
   },
   'ipv6 public passes': function (test) {
     if (!this.plugin.maxmind) { return test.done(); }
-    if (!this.plugin.maxmind.dbsLoaded) { return test.done(); }
+    if (!this.plugin.dbsLoaded) { return test.done(); }
     test.expect(1);
     var r = this.plugin.get_geoip_maxmind('2607:f060:b008:feed::6');
     test.ok(r);
@@ -157,8 +144,8 @@ exports.haversine = {
   'WA to MI is 2000-2500km': function (test) {
     test.expect(2);
     var r = this.plugin.haversine(47.673, -122.3419, 38, -97);
-    test.equal(true, (r > 2000));
-    test.equal(true, (r < 2500));
+    test.equal(true, (r > 2000), r);
+    test.equal(true, (r < 2500), r);
     test.done();
   }
 };
