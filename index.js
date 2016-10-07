@@ -14,7 +14,7 @@ exports.register = function () {
 
 exports.load_geoip_ini = function () {
   var plugin = this;
-  plugin.cfg = plugin.config.get('connect.geoip.ini', {
+  plugin.cfg = plugin.config.get('geoip.ini', {
     booleans: [
       '+main.show_city',
       '+main.show_region',
@@ -24,6 +24,14 @@ exports.load_geoip_ini = function () {
   function () {
     plugin.load_geoip_ini();
   });
+
+  // legacy settings
+  if (plugin.cfg.main.show_city) {
+    plugin.cfg.show.city = plugin.cfg.main.show_city;
+  }
+  if (plugin.cfg.main.show_region) {
+    plugin.cfg.show.region = plugin.cfg.main.show_region;
+  }
 };
 
 exports.load_maxmind = function () {
@@ -191,7 +199,7 @@ exports.add_headers = function (next, connection) {
   if (!txn) { return; }
   txn.remove_header('X-Haraka-GeoIP');
   txn.remove_header('X-Haraka-GeoIP-Received');
-  var r = connection.results.get('connect.geoip');
+  var r = connection.results.get('geoip');
   if (r) {
     if (r.country) txn.add_header('X-Haraka-GeoIP',   r.human  );
     if (r.asn)     txn.add_header('X-Haraka-ASN',     r.asn    );

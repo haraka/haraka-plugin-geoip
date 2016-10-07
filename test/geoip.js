@@ -13,7 +13,7 @@ var _set_up = function (done) {
 
 exports.register = {
   setUp : function (done) {
-    this.plugin = new fixtures.plugin('connect.geoip');
+    this.plugin = new fixtures.plugin('geoip');
     this.plugin.register();
     done();
   },
@@ -46,7 +46,7 @@ exports.load_maxmind = {
 
 exports.lookup_maxmind = {
   setUp : function (done) {
-    this.plugin = new fixtures.plugin('connect.geoip');
+    this.plugin = new fixtures.plugin('geoip');
     this.plugin.load_geoip_ini();
 
     this.connection = Connection.createConnection();
@@ -58,7 +58,7 @@ exports.lookup_maxmind = {
     var cb = function() {
       if (this.plugin.maxmind && this.plugin.maxmind.dbsLoaded) {
         test.expect(3);
-        var r = this.connection.results.get('connect.geoip');
+        var r = this.connection.results.get('geoip');
         test.equal('53837', r.asn);
         test.equal('US', r.country);
         test.equal('NA', r.continent);
@@ -81,7 +81,7 @@ exports.lookup_maxmind = {
 
 exports.get_geoip = {
   setUp : function (done) {
-    this.plugin = new fixtures.plugin('connect.geoip');
+    this.plugin = new fixtures.plugin('geoip');
     this.plugin.register();
     done();
   },
@@ -101,7 +101,7 @@ exports.get_geoip = {
 
 exports.get_geoip_maxmind = {
   setUp : function (done) {
-    this.plugin = new fixtures.plugin('connect.geoip');
+    this.plugin = new fixtures.plugin('geoip');
     this.plugin.load_geoip_ini();
     var p = this.plugin;
     this.plugin.load_maxmind();

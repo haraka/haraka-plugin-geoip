@@ -5,17 +5,19 @@ provide geographic information about mail senders.
 
 # SYNOPSIS
 
-Use MaxMind's GeoIP databases to report geographic information about senders. This plugin has support for both the [maxmind](https://github.com/runk/node-maxmind) and [geoip-lite](https://github.com/bluesmoon/node-geoip) node modules.
+Use MaxMind's GeoIP databases to report geographic information about senders.
+
+This plugin supports for several geoip modules:
+
+    * [maxmind](https://github.com/runk/node-maxmind) 0.6 (maxmind v1)
+    * [maxmind](https://github.com/runk/node-maxmind) 1.0+ (maxmind v2)
+    * [geoip-lite](https://github.com/bluesmoon/node-geoip)
+
+Support for geoip-lite is published separately as [haraka-plugin-geoip-lite]().
 
 # INSTALL
 
-Install the npm geoip module you prefer:
-
-    npm install maxmind
-      or
-    npm install -g geoip-lite
-
-If both are installed, maxmind will be preferred as it's faster and also provides ASN data. The maxmind module requires manual download of the GeoIP databases. The npm module `maxmind-geolite-mirror` will download the files and keep them up-to-date if you run it periodically.
+The maxmind module requires the manual download of the GeoIP databases. The npm module `maxmind-geolite-mirror` will download the files for you. It will keep them up-to-date if you run it periodically.
 
 ```bash
 mkdir -p /usr/local/share/GeoIP
@@ -25,7 +27,7 @@ npm install -g maxmind-geolite-mirror
 
 # DESCRIPTION
 
-GeoIP results are stored in connection.notes.geoip and connection.[results](https://github.com/haraka/Haraka/blob/master/docs/Results.md).connect.geoip. The following information is typically available:
+GeoIP results are stored in connection.notes.geoip and connection.[results](https://github.com/haraka/Haraka/blob/master/docs/Results.md).geoip. The following information is typically available:
 
     continent: NA,
     country:   US,
@@ -38,22 +40,22 @@ If the GeoIP city database is available, the following may also be available:
     distance: 1539    // in kilometers
     range:    [ 3479299040, 3479299071 ],
 
-`connect.geoip` also adds entries like this to your logs:
+`geoip` also adds entries like this to your logs:
 
-    [connect.geoip] US
-    [connect.geoip] US, WA
-    [connect.geoip] US, WA, Seattle
-    [connect.geoip] US, WA, Seattle, 1319km
+    [geoip] US
+    [geoip] US, WA
+    [geoip] US, WA, Seattle
+    [geoip] US, WA, Seattle, 1319km
 
 Calculating the distance requires the public IP of this mail server. This may
 be the IP that Haraka is bound to. If not, make sure that `utils.get_public_ip`
-can figure it out (via STUN or in `smtp.ini`).
+can figure it out (automatically via STUN or manually specified in `smtp.ini`).
 
 # CONFIG
 
 - distance
 
-Perform the geodesic distance calculations. Calculates the distance "as the
+Performs geodesic distance calculations. Calculates the distance "as the
 crow flies" from the remote mail server.
 
 This calculation requires a 'from' IP address. This will typically be the
@@ -61,20 +63,17 @@ public IP of your mail server. If Haraka is bound to a private IP, net\_utils
 will attempt to determine your public IP. If that doesn't work, edit
 config/smtp.ini and set `public_ip`.
 
-- show\_city
+- show.city
 
 show city data in logs and headers. City data is less accurate than country.
 
-- show\_region in logs and headers. Regional data are US states, Canadian
+- show.region in logs and headers. Regional data are US states, Canadian
   provinces and such.
 
 Set a connection result to true if the distance exceeds this many kilometers.
 
 - too\_far=4000
 
-- [asn]report_as
-
-Permits reporting the ASN as another plugin (such as connect.asn).
 
 # SPAM PREDICTION WITH DISTANCE
 
