@@ -53,7 +53,13 @@ exports.load_maxmind = function () {
   ['city', 'country'].forEach(function (db) {
     var dbPath = path.join(dbdir, 'GeoLite2-' + ucFirst(db) + '.mmdb');
     if (fs.existsSync(dbPath)) {
-      plugin[db + 'Lookup'] = plugin.maxmind.open(dbPath);
+      plugin[db + 'Lookup'] = plugin.maxmind.openSync(dbPath, {
+        watchForUpdates: true,
+        cache: {
+          max: 1000, // max items in cache
+          maxAge: 1000 * 60 * 60 // life time in milliseconds
+        }
+      });
       plugin.dbsLoaded++;
     }
   });
