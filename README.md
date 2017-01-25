@@ -5,6 +5,8 @@
 
 # geoip
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/haraka/haraka-plugin-geoip.svg)](https://greenkeeper.io/)
+
 provide geographic information about mail senders.
 
 # SYNOPSIS
