@@ -2,10 +2,9 @@
 [![Code Coverage][cov-img]][cov-url]
 [![Code Climate][clim-img]][clim-url]
 [![NPM][npm-img]][npm-url]
+[![Greenkeeper badge](https://badges.greenkeeper.io/haraka/haraka-plugin-geoip.svg)](https://greenkeeper.io/)
 
 # geoip
-
-[![Greenkeeper badge](https://badges.greenkeeper.io/haraka/haraka-plugin-geoip.svg)](https://greenkeeper.io/)
 
 provide geographic information about mail senders.
 
