@@ -245,7 +245,7 @@ exports.haversine = function (lat1, lon1, lat2, lon2) {
   // calculate the great circle distance using the haversine formula
   // found here: http://www.movable-type.co.uk/scripts/latlong.html
   var EARTH_RADIUS = 6371; // km
-  function toRadians(v) { return v * Math.PI / 180; }
+  function toRadians (v) { return v * Math.PI / 180; }
   var deltaLat = toRadians(lat2 - lat1);
   var deltaLon = toRadians(lon2 - lon1);
   lat1 = toRadians(lat1);

@@ -47,7 +47,7 @@ exports.load_maxmind = {
 exports.lookup_maxmind = {
   setUp : _set_up,
   'servedby.tnpi.net': function (test) {
-    var cb = function() {
+    var cb = function () {
       if (this.plugin.maxmind && this.plugin.dbsLoaded) {
         test.expect(2);
         var r = this.connection.results.get('geoip');
