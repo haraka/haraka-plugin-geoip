@@ -1,4 +1,5 @@
 [![Build Status][ci-img]][ci-url]
+[![Windows Build status][ci-win-img]][ci-win-url]
 [![Code Coverage][cov-img]][cov-url]
 [![Code Climate][clim-img]][clim-url]
 [![Greenkeeper badge][gk-img]][gk-url]
@@ -118,6 +119,8 @@ Databases: http://geolite.maxmind.com/download/geoip/database
 
 [ci-img]: https://travis-ci.org/haraka/haraka-plugin-geoip.svg
 [ci-url]: https://travis-ci.org/haraka/haraka-plugin-geoip
+[ci-win-img]: https://ci.appveyor.com/api/projects/status/ifs9fdewpobcpis0?svg=true
+[ci-win-url]: https://ci.appveyor.com/project/msimerson/haraka-plugin-geoip
 [cov-img]: https://codecov.io/github/haraka/haraka-plugin-geoip/coverage.svg
 [cov-url]: https://codecov.io/github/haraka/haraka-plugin-geoip
 [clim-img]: https://codeclimate.com/github/haraka/haraka-plugin-geoip/badges/gpa.svg
