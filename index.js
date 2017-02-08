@@ -82,53 +82,54 @@ exports.lookup_maxmind = function (next, connection) {
   if (!plugin.maxmind) { return next(); }
   if (!plugin.dbsLoaded) { return next(); }
 
-  var show = [];
-
   var loc = plugin.get_geoip_maxmind(connection.remote.ip);
   if (!loc) return next();
 
+  var show = [];
+  var agg_res = { emit: true };
+
   if (loc.continent.code && loc.continent.code !== '--') {
-    connection.results.add(plugin, {continent: loc.continent.code});
+    agg_res.continent = loc.continent.code;
     show.push(loc.continent.code);
   }
   var cc = loc.country.iso_code;
   if (cc && cc !== '--') {
-    connection.results.add(plugin, {country: cc});
+    agg_res.country = cc;
     show.push(cc);
   }
   if (loc.subdivisions && loc.subdivisions[0] !== '--') {
-    connection.results.add(plugin, {region: loc.subdivisions[0].iso_code});
+    agg_res.region = loc.subdivisions[0].iso_code;
     if (plugin.cfg.show.region) show.push(loc.subdivisions[0].iso_code);
   }
   if (loc.city && loc.city.names.en !== '--') {
-    connection.results.add(plugin, {city: loc.city.names.en});
+    agg_res.city = loc.city.names.en;
     if (plugin.cfg.show.city) show.push(loc.city.names.en);
   }
   if (loc.location && loc.location.latitude) {
-    connection.results.add(plugin, {ll: [loc.location.latitude, loc.location.longitude]});
-    connection.results.add(plugin, {
-      geo: {
-        lat: loc.location.latitude,
-        lon: loc.location.longitude
-      }
-    });
+    agg_res.ll = [loc.location.latitude, loc.location.longitude];
+    agg_res.geo = { lat: loc.location.latitude, lon: loc.location.longitude };
   }
-
   if (show.length === 0) return next();
 
+  agg_res.human = show.join(', ');
+
   if (!plugin.cfg.main.calc_distance || !loc.location) {
-    connection.results.add(plugin, {human: show.join(', '), emit:true});
+    connection.results.add(plugin, agg_res);
     return next();
   }
 
-  function calcDone (err, distance) {
-    if (err) { connection.results.add(plugin, {err: err}); }
-    if (distance) { show.push(distance+'km'); }
-    connection.results.add(plugin, {human: show.join(', '), emit:true});
+  plugin.calculate_distance(connection, agg_res.ll, function (err, distance) {
+    if (err) {
+      connection.results.add(plugin, {err: err});
+    }
+    if (distance) {
+      agg_res.distance = distance;
+      show.push(distance+'km');
+      agg_res.human = show.join(', ');
+    }
+    connection.results.add(plugin, agg_res);
     return next();
-  }
-  plugin.calculate_distance(connection,
-            [loc.location.latitude, loc.location.longitude], calcDone);
+  });
 };
 
 exports.get_geoip = function (ip) {
@@ -245,7 +246,7 @@ exports.haversine = function (lat1, lon1, lat2, lon2) {
   // calculate the great circle distance using the haversine formula
   // found here: http://www.movable-type.co.uk/scripts/latlong.html
   var EARTH_RADIUS = 6371; // km
-  function toRadians(v) { return v * Math.PI / 180; }
+  function toRadians (v) { return v * Math.PI / 180; }
   var deltaLat = toRadians(lat2 - lat1);
   var deltaLon = toRadians(lon2 - lon1);
   lat1 = toRadians(lat1);
