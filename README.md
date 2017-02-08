@@ -1,8 +1,8 @@
 [![Build Status][ci-img]][ci-url]
 [![Code Coverage][cov-img]][cov-url]
 [![Code Climate][clim-img]][clim-url]
+[![Greenkeeper badge][gk-img]][gk-url]
 [![NPM][npm-img]][npm-url]
-[![Greenkeeper badge](https://badges.greenkeeper.io/haraka/haraka-plugin-geoip.svg)](https://greenkeeper.io/)
 
 # geoip
 
@@ -18,11 +18,11 @@ This plugin supports for several geoip modules:
     * [maxmind](https://github.com/runk/node-maxmind) 1.0+ (maxmind v2)
     * [geoip-lite](https://github.com/bluesmoon/node-geoip)
 
-Support for `geoip-lite` is published to npm separately as [haraka-plugin-geoip-lite](https://www.npmjs.com/package/haraka-plugin-geoip-lite).
+Support for `geoip-lite` is published to npm separately as [haraka-plugin-geoip-lite][2].
 
 # INSTALL
 
-The maxmind module requires the manual download of the GeoIP databases. The npm module `maxmind-geolite-mirror` will download the files for you. It will keep them up-to-date if you run it periodically.
+The maxmind module requires the manual download of the GeoIP databases. The npm module [maxmind-geolite-mirror][1] will download the files for you and also keep them up-to-date if you run it periodically.
 
 ```bash
 mkdir -p /usr/local/share/GeoIP
@@ -32,7 +32,7 @@ npm install -g maxmind-geolite-mirror
 
 # DESCRIPTION
 
-GeoIP results are stored in connection.notes.geoip and connection.[results](https://github.com/haraka/Haraka/blob/master/docs/Results.md).geoip. The following information is typically available:
+GeoIP results are stored in connection.notes.geoip and the [haraka-results][3] object at `connection.results.geoip`. The following information is typically available:
 
     continent: NA,
     country:   US,
@@ -82,7 +82,7 @@ show city data in logs and headers. City data is less accurate than country.
 
 # SPAM PREDICTION WITH DISTANCE
 
-[Spatio-temporal Network-level Automatic Reputation Engine](http://www.cc.gatech.edu/~feamster/papers/snare-usenix09.pdf)
+[Spatio-temporal Network-level Automatic Reputation Engine][4]
 
     "For ham, 90% of the messages travel about 4,000 km or less. On the
     other hand, for spam, only 28% of messages stay within this range."
@@ -110,6 +110,12 @@ MaxMind: http://www.maxmind.com/
 Databases: http://geolite.maxmind.com/download/geoip/database
 
 
+
+[1]: https://github.com/msimerson/maxmind-geolite-mirror
+[2]: https://www.npmjs.com/package/haraka-plugin-geoip-lite
+[3]: https://github.com/haraka/haraka-results
+[4]: http://www.cc.gatech.edu/~feamster/papers/snare-usenix09.pdf
+
 [ci-img]: https://travis-ci.org/haraka/haraka-plugin-geoip.svg
 [ci-url]: https://travis-ci.org/haraka/haraka-plugin-geoip
 [cov-img]: https://codecov.io/github/haraka/haraka-plugin-geoip/coverage.svg
@@ -118,3 +124,5 @@ Databases: http://geolite.maxmind.com/download/geoip/database
 [clim-url]: https://codeclimate.com/github/haraka/haraka-plugin-geoip
 [npm-img]: https://nodei.co/npm/haraka-plugin-geoip.png
 [npm-url]: https://www.npmjs.com/package/haraka-plugin-geoip
+[gk-img]: https://badges.greenkeeper.io/haraka/haraka-plugin-geoip.svg
+[gk-url]: https://greenkeeper.io/
