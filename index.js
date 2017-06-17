@@ -141,7 +141,7 @@ exports.get_geoip = function (ip) {
   var res = plugin.get_geoip_maxmind(ip);
   if (!res) return;
 
-// console.log(res);
+  // console.log(res);
   var show = [];
   if (res.continent && res.continent.code) show.push(res.continent.code);
   if (res.country   && res.country.iso_code) show.push(res.country.iso_code);
