@@ -129,14 +129,14 @@ exports.calculate_distance = {
     this.plugin.local.ip='192.48.85.146';
     this.connection.remote.ip='199.176.179.3';
     this.plugin.calculate_distance(
-            this.connection,
-            [38, -97],
-            function (err, d) {
-              if (err) console.error(err);
-              test.expect(1);
-              test.ok(d);
-              test.done();
-            });
+      this.connection,
+      [38, -97],
+      function (err, d) {
+        if (err) console.error(err);
+        test.expect(1);
+        test.ok(d);
+        test.done();
+      });
   },
 };
 
