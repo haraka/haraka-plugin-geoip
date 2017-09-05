@@ -1,9 +1,9 @@
 [![Build Status][ci-img]][ci-url]
 [![Windows Build status][ci-win-img]][ci-win-url]
-[![Code Coverage][cov-img]][cov-url]
 [![Code Climate][clim-img]][clim-url]
 [![Greenkeeper badge][gk-img]][gk-url]
 [![NPM][npm-img]][npm-url]
+<!--[![Code Coverage][cov-img]][cov-url]-->
 
 # geoip
 
