@@ -1,10 +1,10 @@
 'use strict';
 
-var fixtures     = require('haraka-test-fixtures');
+const fixtures     = require('haraka-test-fixtures');
 
-var Connection   = fixtures.connection;
+const Connection   = fixtures.connection;
 
-var _set_up = function (done) {
+const _set_up = function (done) {
   this.plugin = new fixtures.plugin('geoip');
   this.plugin.register();
   this.connection = Connection.createConnection();
@@ -35,7 +35,7 @@ exports.register = {
 exports.load_maxmind = {
   setUp : _set_up,
   'maxmind module loads if installed': function (test) {
-    var p = this.plugin;
+    const p = this.plugin;
     if (this.plugin.load_maxmind()) {
       test.expect(1);
       test.ok(p.maxmind);
@@ -47,10 +47,10 @@ exports.load_maxmind = {
 exports.lookup_maxmind = {
   setUp : _set_up,
   'servedby.tnpi.net': function (test) {
-    var cb = function () {
+    const cb = function () {
       if (this.plugin.maxmind && this.plugin.dbsLoaded) {
         test.expect(2);
-        var r = this.connection.results.get('geoip');
+        const r = this.connection.results.get('geoip');
         test.equal('US', r.country);
         test.equal('NA', r.continent);
       }
@@ -90,7 +90,7 @@ exports.get_geoip_maxmind = {
   setUp : function (done) {
     this.plugin = new fixtures.plugin('geoip');
     this.plugin.load_geoip_ini();
-    var p = this.plugin;
+    const p = this.plugin;
     this.plugin.load_maxmind();
     if (!p.maxmind) {
       p.logerror("maxmind not loaded!");
@@ -112,7 +112,7 @@ exports.get_geoip_maxmind = {
     if (!this.plugin.maxmind) { return test.done(); }
     if (!this.plugin.dbsLoaded) { return test.done(); }
     test.expect(1);
-    var r = this.plugin.get_geoip_maxmind('2607:f060:b008:feed::6');
+    const r = this.plugin.get_geoip_maxmind('2607:f060:b008:feed::6');
     test.ok(r);
     test.done();
   },
@@ -144,7 +144,7 @@ exports.haversine = {
   setUp : _set_up,
   'WA to MI is 2000-2500km': function (test) {
     test.expect(2);
-    var r = this.plugin.haversine(47.673, -122.3419, 38, -97);
+    const r = this.plugin.haversine(47.673, -122.3419, 38, -97);
     test.equal(true, (r > 2000), r);
     test.equal(true, (r < 2500), r);
     test.done();
