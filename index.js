@@ -88,20 +88,19 @@ exports.lookup_maxmind = function (next, connection) {
   const show = [];
   const agg_res = { emit: true };
 
-  if (loc.continent.code && loc.continent.code !== '--') {
+  if (loc.continent && loc.continent.code && loc.continent.code !== '--') {
     agg_res.continent = loc.continent.code;
     show.push(loc.continent.code);
   }
-  const cc = loc.country.iso_code;
-  if (cc && cc !== '--') {
-    agg_res.country = cc;
-    show.push(cc);
+  if (loc.country && loc.country.iso_code && loc.country.iso_code !== '--') {
+    agg_res.country = loc.country.iso_code;
+    show.push(loc.country.iso_code);
   }
-  if (loc.subdivisions && loc.subdivisions[0] !== '--') {
+  if (loc.subdivisions && loc.subdivisions[0].iso_code) {
     agg_res.region = loc.subdivisions[0].iso_code;
     if (plugin.cfg.show.region) show.push(loc.subdivisions[0].iso_code);
   }
-  if (loc.city && loc.city.names.en !== '--') {
+  if (loc.city) {
     agg_res.city = loc.city.names.en;
     if (plugin.cfg.show.city) show.push(loc.city.names.en);
   }
