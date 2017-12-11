@@ -103,7 +103,7 @@ exports.lookup_maxmind = function (next, connection) {
     agg_res.city = loc.city.names.en;
     if (plugin.cfg.show.city) show.push(loc.city.names.en);
   }
-  if (loc.location && loc.location.latitude) {
+  if (loc.location && !isNaN(loc.location.latitude)) {
     agg_res.ll = [loc.location.latitude, loc.location.longitude];
     agg_res.geo = { lat: loc.location.latitude, lon: loc.location.longitude };
   }
