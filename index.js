@@ -42,8 +42,7 @@ exports.load_maxmind = function () {
   }
   catch (e) {
     plugin.logerror(e);
-    plugin.logerror("unable to load maxmind, try\n\n\t" +
-         "'npm install -g maxmind'\n\n");
+    plugin.logerror(`unable to load maxmind, try\n\n\t 'npm install -g maxmind'\n\n`);
     return;
   }
 
@@ -51,7 +50,7 @@ exports.load_maxmind = function () {
   const dbdir = plugin.cfg.main.dbdir || '/usr/local/share/GeoIP/';
 
   ['city', 'country'].forEach(function (db) {
-    const dbPath = path.join(dbdir, 'GeoLite2-' + ucFirst(db) + '.mmdb');
+    const dbPath = path.join(dbdir, `GeoLite2-${ucFirst(db)}.mmdb`);
     if (fs.existsSync(dbPath)) {
       plugin[db + 'Lookup'] = plugin.maxmind.openSync(dbPath, {
         watchForUpdates: true,
@@ -69,7 +68,7 @@ exports.load_maxmind = function () {
     return;
   }
 
-  plugin.loginfo('loaded maxmind with ' + plugin.dbsLoaded + ' DBs');
+  plugin.loginfo(`loaded maxmind with ${plugin.dbsLoaded} DBs`);
   plugin.register_hook('connect',   'lookup_maxmind');
   plugin.register_hook('data_post', 'add_headers');
 
@@ -104,7 +103,7 @@ exports.lookup_maxmind = function (next, connection) {
     agg_res.city = loc.city.names.en;
     if (plugin.cfg.show.city) show.push(loc.city.names.en);
   }
-  if (loc.location && loc.location.latitude) {
+  if (loc.location && !isNaN(loc.location.latitude)) {
     agg_res.ll = [loc.location.latitude, loc.location.longitude];
     agg_res.geo = { lat: loc.location.latitude, lon: loc.location.longitude };
   }
@@ -123,7 +122,7 @@ exports.lookup_maxmind = function (next, connection) {
     }
     if (distance) {
       agg_res.distance = distance;
-      show.push(distance+'km');
+      show.push(`${distance}km`);
       agg_res.human = show.join(', ');
     }
     connection.results.add(plugin, agg_res);
@@ -198,8 +197,7 @@ exports.get_local_geo = function (ip, connection) {
   if (!plugin.local_ip) { plugin.local_ip = ip; }
   if (!plugin.local_ip) { plugin.local_ip = plugin.cfg.main.public_ip; }
   if (!plugin.local_ip) {
-    connection.logerror(plugin, "can't calculate distance, " +
-            'set public_ip in smtp.ini');
+    connection.logerror(plugin, `can't calculate distance, set public_ip in smtp.ini`);
     return;
   }
 
@@ -275,10 +273,10 @@ exports.received_headers = function (connection) {
 
     const gi = plugin.get_geoip(match[1]);
     const country = gi ? (gi.country.iso_code) : '';
-    let logmsg = 'received=' + match[1];
+    let logmsg = `received=${match[1]}`;
     if (country) {
-      logmsg += ' country=' + country;
-      results.push(match[1] + ':' + country);
+      logmsg += ` country=${country}`;
+      results.push(`${match[1]}:${country}`);
     }
     connection.loginfo(plugin, logmsg);
   }
@@ -305,6 +303,6 @@ exports.originating_headers = function (connection) {
   const gi = plugin.get_geoip(found_ip);
   if (!gi) return;
 
-  connection.loginfo(plugin, 'originating=' + found_ip + ' ' + gi.human);
+  connection.loginfo(plugin, `originating=${found_ip} ${gi.human}`);
   return found_ip + ':' + (gi.country.iso_ode);
 };
