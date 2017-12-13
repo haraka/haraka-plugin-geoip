@@ -138,6 +138,24 @@ exports.calculate_distance = {
         test.done();
       });
   },
+  'congo to china': function (test) {
+    this.plugin.register();
+    if (!this.plugin.db_loaded) {
+      return test.done();
+    }
+    this.plugin.cfg.main.calc_distance=true;
+    this.plugin.local.ip='41.78.192.1';
+    this.connection.remote.ip='60.168.181.159';
+    this.plugin.calculate_distance(
+      this.connection,
+      [38, -97],
+      function (err, d) {
+        if (err) console.error(err);
+        test.expect(1);
+        test.ok(d);
+        test.done();
+      });
+  },
 };
 
 exports.haversine = {
@@ -149,4 +167,12 @@ exports.haversine = {
     test.equal(true, (r < 2500), r);
     test.done();
   },
+  'DRC to China is 7,000-15,000km': function (test) {
+    test.expect(2);
+    const r = this.plugin.haversine(0, 25, 32, 117);
+    test.equal(true, (r > 10000), r);
+    test.equal(true, (r < 15000), r);
+    test.done();
+  },
+
 };
