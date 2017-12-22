@@ -272,7 +272,7 @@ exports.received_headers = function (connection) {
     if (net_utils.is_private_ip(match[1])) continue;  // exclude private IP
 
     const gi = plugin.get_geoip(match[1]);
-    const country = gi ? (gi.country.iso_code) : '';
+    const country = (gi && gi.country && gi.country.iso_code) ? (gi.country.iso_code) : '';
     let logmsg = `received=${match[1]}`;
     if (country) {
       logmsg += ` country=${country}`;
