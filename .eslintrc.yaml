@@ -3,9 +3,12 @@ env:
   es6: true
   mocha: true
 
-plugins: [ haraka ]
+plugins:
+  - haraka
 
-extends: [ eslint:recommended, plugin:haraka/recommended ]
+extends:
+  - eslint:recommended
+  - plugin:haraka/recommended
 
 root: true
 
