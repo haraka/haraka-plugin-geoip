@@ -32,11 +32,11 @@ exports.register = {
   },
 };
 
-exports.load_maxmind = {
+exports.require_maxmind = {
   setUp : _set_up,
   'maxmind module loads if installed': function (test) {
     const p = this.plugin;
-    if (this.plugin.load_maxmind()) {
+    if (this.plugin.require_maxmind()) {
       test.expect(1);
       test.ok(p.maxmind);
     }
@@ -73,13 +73,13 @@ exports.get_geoip = {
     done();
   },
   'no IP fails': function (test) {
-    if (!this.plugin.hasProvider) { return test.done(); }
+    if (!this.plugin.dbsLoaded) return test.done();
     test.expect(1);
     test.ok(!this.plugin.get_geoip());
     test.done();
   },
   'ipv4 private fails': function (test) {
-    if (!this.plugin.hasProvider) { return test.done(); }
+    if (!this.plugin.dbsLoaded) return test.done();
     test.expect(1);
     test.ok(!this.plugin.get_geoip('192.168.85.146'));
     test.done();
@@ -90,30 +90,31 @@ exports.get_geoip_maxmind = {
   setUp : function (done) {
     this.plugin = new fixtures.plugin('geoip');
     this.plugin.load_geoip_ini();
-    const p = this.plugin;
-    this.plugin.load_maxmind();
-    if (!p.maxmind) {
-      p.logerror("maxmind not loaded!");
+    this.plugin.require_maxmind();
+    if (!this.plugin.maxmind) {
+      this.plugin.logerror("maxmind not loaded!");
       return done();
     }
-    if (!p.dbsLoaded) {
-      p.logerror("no maxmind DBs loaded!");
+    this.plugin.load_dbs();
+    if (!this.plugin.dbsLoaded) {
+      this.plugin.logerror("no maxmind DBs loaded!");
     }
     done();
   },
   'ipv4 public passes': function (test) {
-    if (!this.plugin.maxmind) { return test.done(); }
-    if (!this.plugin.dbsLoaded) { return test.done(); }
+    if (!this.plugin.maxmind) return test.done();
+    if (!this.plugin.dbsLoaded) return test.done();
     test.expect(1);
-    test.ok(this.plugin.get_geoip_maxmind('192.48.85.146'));
+    const r = this.plugin.get_geoip_maxmind('192.48.85.146');
+    test.equal(r.country.iso_code, 'US');
     test.done();
   },
   'ipv6 public passes': function (test) {
-    if (!this.plugin.maxmind) { return test.done(); }
-    if (!this.plugin.dbsLoaded) { return test.done(); }
+    if (!this.plugin.maxmind) return test.done();
+    if (!this.plugin.dbsLoaded) return test.done();
     test.expect(1);
     const r = this.plugin.get_geoip_maxmind('2607:f060:b008:feed::6');
-    test.ok(r);
+    test.equal(r.country.iso_code, 'US');
     test.done();
   },
 };

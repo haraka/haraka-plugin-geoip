@@ -12,11 +12,18 @@ exports.register = function () {
   const plugin = this;
 
   plugin.load_geoip_ini();
-  plugin.load_maxmind();
-};
+  plugin.require_maxmind();
+  plugin.load_dbs();
+
+  if (plugin.dbsLoaded) {
+    plugin.register_hook('connect',   'lookup_maxmind');
+    plugin.register_hook('data_post', 'add_headers');
+  }
+}
 
 exports.load_geoip_ini = function () {
   const plugin = this;
+
   plugin.cfg = plugin.config.get('geoip.ini', {
     booleans: [
       '-main.calc_distance',
@@ -32,57 +39,50 @@ exports.load_geoip_ini = function () {
   const m = plugin.cfg.main;
   if (m.show_city  ) plugin.cfg.show.city = m.show_city;
   if (m.show_region) plugin.cfg.show.region = m.show_region;
-};
+}
 
-exports.load_maxmind = function () {
+exports.require_maxmind = function () {
   const plugin = this;
 
   try {
     plugin.maxmind = require('maxmind');
+    return true;
   }
   catch (e) {
     plugin.logerror(e);
-    plugin.logerror(`unable to load maxmind, try\n\n\t'npm install -g maxmind'\n\n`);
-    return;
   }
+
+  plugin.logerror(`unable to load maxmind, try\n\n\t'npm install -g maxmind'\n\n`);
+}
+
+exports.load_dbs = function () {
+  const plugin = this;
+
+  if (!plugin.maxmind) return;
 
   plugin.dbsLoaded = 0;
   const dbdir = plugin.cfg.main.dbdir || '/usr/local/share/GeoIP/';
 
-  ['city', 'country'].forEach(function (db) {
-    const dbPath = path.join(dbdir, `GeoLite2-${ucFirst(db)}.mmdb`);
-    if (fs.existsSync(dbPath)) {
-      plugin[db + 'Lookup'] = plugin.maxmind.openSync(dbPath, {
-        watchForUpdates: true,
-        cache: {
-          max: 1000, // max items in cache
-          maxAge: 1000 * 60 * 60 // life time in milliseconds
-        }
-      });
-      plugin.dbsLoaded++;
-    }
-  });
+  ['city', 'country'].forEach((db) => {
 
-  if (plugin.dbsLoaded === 0) {
-    plugin.logerror('maxmind loaded but no GeoIP DBs found!');
-    return;
-  }
+    const dbPath = path.join(dbdir, `GeoLite2-${ucFirst(db)}.mmdb`);
+    if (!fs.existsSync(dbPath)) return;
+
+    plugin[db + 'Lookup'] = plugin.maxmind.openSync(dbPath, {
+      watchForUpdates: true,
+      cache: {
+        max: 1000, // max items in cache
+        maxAge: 1000 * 60 * 60 // life time in milliseconds
+      }
+    });
+    plugin.dbsLoaded++;
+  })
 
   plugin.loginfo(`loaded maxmind with ${plugin.dbsLoaded} DBs`);
-  plugin.register_hook('connect',   'lookup_maxmind');
-  plugin.register_hook('data_post', 'add_headers');
+}
 
-  return true;
-};
-
-exports.lookup_maxmind = function (next, connection) {
+exports.get_locales = function (loc) {
   const plugin = this;
-
-  if (!plugin.maxmind) { return next(); }
-  if (!plugin.dbsLoaded) { return next(); }
-
-  const loc = plugin.get_geoip_maxmind(connection.remote.ip);
-  if (!loc) return next();
 
   const show = [];
   const agg_res = { emit: true };
@@ -91,22 +91,37 @@ exports.lookup_maxmind = function (next, connection) {
     agg_res.continent = loc.continent.code;
     show.push(loc.continent.code);
   }
+
   if (loc.country && loc.country.iso_code && loc.country.iso_code !== '--') {
     agg_res.country = loc.country.iso_code;
     show.push(loc.country.iso_code);
   }
+
   if (loc.subdivisions && loc.subdivisions[0].iso_code) {
     agg_res.region = loc.subdivisions[0].iso_code;
     if (plugin.cfg.show.region) show.push(loc.subdivisions[0].iso_code);
   }
+
   if (loc.city && loc.city.names) {
     agg_res.city = loc.city.names.en;
     if (plugin.cfg.show.city) show.push(loc.city.names.en);
   }
+
   if (loc.location && isFinite(loc.location.latitude)) {
     agg_res.ll = [loc.location.latitude, loc.location.longitude];
     agg_res.geo = { lat: loc.location.latitude, lon: loc.location.longitude };
   }
+
+  return [show, agg_res];
+}
+
+exports.lookup_maxmind = function (next, connection) {
+  const plugin = this;
+
+  const loc = plugin.get_geoip_maxmind(connection.remote.ip);
+  if (!loc) return next();
+
+  const [show, agg_res] = plugin.get_locales(loc);
   if (show.length === 0) return next();
 
   agg_res.human = show.join(', ');
@@ -116,7 +131,7 @@ exports.lookup_maxmind = function (next, connection) {
     return next();
   }
 
-  plugin.calculate_distance(connection, agg_res.ll, function (err, distance) {
+  plugin.calculate_distance(connection, agg_res.ll, (err, distance) => {
     if (err) {
       connection.results.add(plugin, {err: err});
     }
@@ -126,15 +141,19 @@ exports.lookup_maxmind = function (next, connection) {
       agg_res.human = show.join(', ');
     }
     connection.results.add(plugin, agg_res);
-    return next();
+    next();
   });
-};
+}
 
 exports.get_geoip = function (ip) {
   const plugin = this;
-  if (!ip) return;
-  if (!net.isIPv4(ip) && !net.isIPv6(ip)) return;
-  if (net_utils.is_private_ip(ip)) return;
+
+  switch (true) {
+    case (!ip):
+    case (!net.isIPv4(ip) && !net.isIPv6(ip)):
+    case (net_utils.is_private_ip(ip)):
+      return;
+  }
 
   const res = plugin.get_geoip_maxmind(ip);
   if (!res) return;
@@ -148,26 +167,26 @@ exports.get_geoip = function (ip) {
   res.human = show.join(', ');
 
   return res;
-};
+}
 
 exports.get_geoip_maxmind = function (ip) {
   const plugin = this;
-  if (!plugin.maxmind) return;
 
-  if (plugin.cityLookup) {
-    return plugin.cityLookup.get(ip);
-  }
-  if (plugin.countryLookup) {
-    return plugin.countryLookup.get(ip);
-  }
-};
+  if (!plugin.maxmind) return;
+  if (!plugin.dbsLoaded) return;
+
+  if (plugin.cityLookup) return plugin.cityLookup.get(ip);
+  if (plugin.countryLookup) return plugin.countryLookup.get(ip);
+}
 
 exports.add_headers = function (next, connection) {
   const plugin = this;
   const txn = connection.transaction;
-  if (!txn) { return; }
+  if (!txn) return;
+
   txn.remove_header('X-Haraka-GeoIP');
   txn.remove_header('X-Haraka-GeoIP-Received');
+
   const r = connection.results.get('geoip');
   if (r) {
     if (r.country) txn.add_header('X-Haraka-GeoIP',   r.human  );
@@ -187,15 +206,15 @@ exports.add_headers = function (next, connection) {
   if (received.length) {
     txn.add_header('X-Haraka-GeoIP-Received', received.join(' '));
   }
-  return next();
-};
+  next();
+}
 
 exports.get_local_geo = function (ip, connection) {
   const plugin = this;
   if (plugin.local_geoip) return;  // cached
 
-  if (!plugin.local_ip) { plugin.local_ip = ip; }
-  if (!plugin.local_ip) { plugin.local_ip = plugin.cfg.main.public_ip; }
+  if (!plugin.local_ip) plugin.local_ip = ip;
+  if (!plugin.local_ip) plugin.local_ip = plugin.cfg.main.public_ip;
   if (!plugin.local_ip) {
     connection.logerror(plugin, "can't calculate distance, set public_ip in smtp.ini");
     return;
@@ -208,19 +227,19 @@ exports.get_local_geo = function (ip, connection) {
   if (!plugin.local_geoip) {
     connection.logerror(plugin, "no GeoIP results for local_ip!");
   }
-};
+}
 
 exports.calculate_distance = function (connection, rll, done) {
   const plugin = this;
 
-  const cb = function (err, l_ip) {
+  function cb (err, l_ip) {
     if (err) {
       connection.results.add(plugin, {err: err});
       connection.logerror(plugin, err);
     }
 
     plugin.get_local_geo(l_ip, connection);
-    if (!plugin.local_ip || !plugin.local_geoip) { return done(); }
+    if (!plugin.local_ip || !plugin.local_geoip) return done();
 
     const gl = plugin.local_geoip.location;
     const gcd = plugin.haversine(gl.latitude, gl.longitude, rll[0], rll[1]);
@@ -233,11 +252,11 @@ exports.calculate_distance = function (connection, rll, done) {
       connection.results.add(plugin, {too_far: true});
     }
     done(err, gcd);
-  };
+  }
 
   if (plugin.local_ip) return cb(null, plugin.local_ip);
   net_utils.get_public_ip(cb);
-};
+}
 
 exports.haversine = function (lat1, lon1, lat2, lon2) {
   // calculate the great circle distance using the haversine formula
@@ -254,12 +273,12 @@ exports.haversine = function (lat1, lon1, lat2, lon2) {
           Math.cos(lat1) * Math.cos(lat2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   return (EARTH_RADIUS * c).toFixed(0);
-};
+}
 
 exports.received_headers = function (connection) {
   const plugin = this;
-  const txn = connection.transaction;
-  const received = txn.header.get_all('received');
+
+  const received = connection.transaction.header.get_all('received');
   if (!received.length) return;
 
   const results = [];
@@ -281,7 +300,7 @@ exports.received_headers = function (connection) {
     connection.loginfo(plugin, logmsg);
   }
   return results;
-};
+}
 
 exports.originating_headers = function (connection) {
   const plugin = this;
@@ -305,4 +324,4 @@ exports.originating_headers = function (connection) {
 
   connection.loginfo(plugin, `originating=${found_ip} ${gi.human}`);
   return found_ip + ':' + (gi.country.iso_ode);
-};
+}

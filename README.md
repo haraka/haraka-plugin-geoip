@@ -13,7 +13,7 @@ provide geographic information about mail senders.
 
 Use MaxMind's GeoIP databases to report geographic information about senders.
 
-This plugin supports for several geoip modules:
+This plugin supports several geoip modules:
 
     * [maxmind](https://github.com/runk/node-maxmind) 0.6 (maxmind v1)
     * [maxmind](https://github.com/runk/node-maxmind) 1.0+ (maxmind v2)
@@ -100,8 +100,6 @@ limited accuracy. MaxMind offers more accurate data for a fee.
 
 For distance calculations, the earth is considered a perfect sphere. In
 reality, it is not. Accuracy should be within 1%.
-
-This plugin does not update the GeoIP databases. You may want to.
 
 
 # SEE ALSO
