@@ -1,4 +1,13 @@
 
+## 1.0.7 - 2018-01-19
+
+- code climate updates #25
+- missing iso_code #24
+- replace string concatenations with template literals #23
+- add tests for latitude == 0, #22
+- Fix issue with latitude == 0, #21
+
+
 ## 1.0.6 - 2017-10-21
 
 - fix lookup exception #18
