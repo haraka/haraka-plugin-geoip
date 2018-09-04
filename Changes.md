@@ -1,4 +1,9 @@
 
+## 1.0.8 - 2018-09-03
+
+- add missing 'c' in iso_code. Fixes #28
+
+
 ## 1.0.7 - 2018-01-19
 
 - code climate updates #25

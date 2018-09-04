@@ -323,5 +323,5 @@ exports.originating_headers = function (connection) {
   if (!gi) return;
 
   connection.loginfo(plugin, `originating=${found_ip} ${gi.human}`);
-  return found_ip + ':' + (gi.country.iso_ode);
+  return found_ip + ':' + (gi.country.iso_code);
 }
