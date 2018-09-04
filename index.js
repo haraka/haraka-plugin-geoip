@@ -291,7 +291,7 @@ exports.received_headers = function (connection) {
     if (net_utils.is_private_ip(match[1])) continue;  // exclude private IP
 
     const gi = plugin.get_geoip(match[1]);
-    const country = (gi && gi.country && gi.country.iso_code) ? (gi.country.iso_code) : '';
+    const country = get_country(gi);
     let logmsg = `received=${match[1]}`;
     if (country) {
       logmsg += ` country=${country}`;
@@ -300,6 +300,13 @@ exports.received_headers = function (connection) {
     connection.loginfo(plugin, logmsg);
   }
   return results;
+}
+
+function get_country (gi) {
+  if (!gi) return '';
+  if (!gi.country) return '';
+  if (!gi.country.iso_code) return '';
+  return gi.country.iso_code;
 }
 
 exports.originating_headers = function (connection) {
@@ -323,5 +330,5 @@ exports.originating_headers = function (connection) {
   if (!gi) return;
 
   connection.loginfo(plugin, `originating=${found_ip} ${gi.human}`);
-  return found_ip + ':' + (gi.country.iso_code);
+  return found_ip + ':' + get_country(gi);
 }
