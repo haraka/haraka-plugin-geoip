@@ -37,6 +37,6 @@
   },
   "dependencies": {
     "haraka-net-utils": "*",
-    "maxmind": "^2.1.0"
+    "maxmind": "^3.0.0"
   }
 }
