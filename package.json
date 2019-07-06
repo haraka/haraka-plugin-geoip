@@ -10,7 +10,9 @@
     "test": "node run_tests",
     "lint": "./node_modules/.bin/eslint index.js test/*.js",
     "lintfix": "./node_modules/.bin/eslint --fix index.js test/*.js",
-    "coverage": "./node_modules/.bin/istanbul cover ./run_tests"
+    "coverage": "./node_modules/.bin/istanbul cover ./run_tests",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "repository": {
     "type": "git",
@@ -37,6 +39,8 @@
   },
   "dependencies": {
     "haraka-net-utils": "*",
-    "maxmind": "^2.1.0"
-  }
+    "maxmind": "^2.1.0",
+    "snyk": "^1.192.3"
+  },
+  "snyk": true
 }
