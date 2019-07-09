@@ -1,6 +1,6 @@
 {
   "name": "haraka-plugin-geoip",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "provide geographic information about mail senders.",
   "main": "index.js",
   "directories": {
