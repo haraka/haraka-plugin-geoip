@@ -1,3 +1,6 @@
+## 1.0.10 - 2019-07-16
+
+- move from maxmind.openSync to async maxmind.open, #35
 
 ## 1.0.9 - 2019-07-09
 
