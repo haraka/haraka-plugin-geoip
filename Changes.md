@@ -1,8 +1,18 @@
+## 1.0.10 - 2019-07-16
+
+- move from maxmind.openSync to async maxmind.open, #35
+
+## 1.0.9 - 2019-07-09
+
+- drop node 6 testing
+- use maxmind v3
+
 
 ## 1.0.8 - 2018-09-03
 
 - add missing 'c' in iso_code.
 - safely access country.iso_code
+
 
 ## 1.0.7 - 2018-01-19
 

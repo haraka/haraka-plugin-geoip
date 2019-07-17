@@ -6,6 +6,9 @@ env:
 plugins:
   - haraka
 
+parserOptions:
+  ecmaVersion: 2017
+
 extends:
   - eslint:recommended
   - plugin:haraka/recommended
