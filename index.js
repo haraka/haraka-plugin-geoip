@@ -8,12 +8,12 @@ function ucFirst (string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-exports.register = function () {
+exports.register = async function () {
   const plugin = this;
 
   plugin.load_geoip_ini();
   plugin.require_maxmind();
-  plugin.load_dbs();
+  await plugin.load_dbs();
 
   if (plugin.dbsLoaded) {
     plugin.register_hook('connect',   'lookup_maxmind');
@@ -55,7 +55,7 @@ exports.require_maxmind = function () {
   plugin.logerror(`unable to load maxmind, try\n\n\t'npm install -g maxmind'\n\n`);
 }
 
-exports.load_dbs = function () {
+exports.load_dbs = async function () {
   const plugin = this;
 
   if (!plugin.maxmind) return;
@@ -63,12 +63,11 @@ exports.load_dbs = function () {
   plugin.dbsLoaded = 0;
   const dbdir = plugin.cfg.main.dbdir || '/usr/local/share/GeoIP/';
 
-  ['city', 'country'].forEach((db) => {
-
+  for (const db of ['city', 'country']) {
     const dbPath = path.join(dbdir, `GeoLite2-${ucFirst(db)}.mmdb`);
     if (!fs.existsSync(dbPath)) return;
 
-    plugin[db + 'Lookup'] = plugin.maxmind.openSync(dbPath, {
+    plugin[db + 'Lookup'] = await plugin.maxmind.open(dbPath, {
       watchForUpdates: true,
       cache: {
         max: 1000, // max items in cache
@@ -76,7 +75,7 @@ exports.load_dbs = function () {
       }
     });
     plugin.dbsLoaded++;
-  })
+  }
 
   plugin.loginfo(`loaded maxmind with ${plugin.dbsLoaded} DBs`);
 }
