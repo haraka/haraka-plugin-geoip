@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "node run_tests",
+    "test": "./node_modules/.bin/mocha",
     "lint": "./node_modules/.bin/eslint index.js test/*.js",
     "lintfix": "./node_modules/.bin/eslint --fix index.js test/*.js",
     "coverage": "./node_modules/.bin/istanbul cover ./run_tests"
@@ -33,7 +33,7 @@
     "eslint": "*",
     "eslint-plugin-haraka": "*",
     "haraka-test-fixtures": "*",
-    "nodeunit": "*"
+    "mocha": "*"
   },
   "dependencies": {
     "haraka-net-utils": "*",
