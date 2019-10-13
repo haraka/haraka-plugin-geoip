@@ -1,3 +1,9 @@
+
+## 1.0.11 - 2019-10-13
+
+- bump maxmind version to 3.1.2
+- switch tests from nodeunit to mocha
+
 ## 1.0.10 - 2019-07-16
 
 - move from maxmind.openSync to async maxmind.open, #35

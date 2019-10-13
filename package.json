@@ -1,13 +1,13 @@
 {
   "name": "haraka-plugin-geoip",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "provide geographic information about mail senders.",
   "main": "index.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha",
+    "test": "./node_modules/.bin/_mocha --exit",
     "lint": "./node_modules/.bin/eslint index.js test/*.js",
     "lintfix": "./node_modules/.bin/eslint --fix index.js test/*.js",
     "coverage": "./node_modules/.bin/istanbul cover ./run_tests"
@@ -37,6 +37,6 @@
   },
   "dependencies": {
     "haraka-net-utils": "*",
-    "maxmind": "^3.0.0"
+    "maxmind": "^3.1.2"
   }
 }
