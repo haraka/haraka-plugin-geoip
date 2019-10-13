@@ -49,7 +49,7 @@ exports.require_maxmind = function () {
     return true;
   }
   catch (e) {
-    plugin.logerror(e);
+    plugin.logerror(e.message);
   }
 
   plugin.logerror(`unable to load maxmind, try\n\n\t'npm install -g maxmind'\n\n`);
@@ -67,7 +67,8 @@ exports.load_dbs = async function () {
     const dbPath = path.join(dbdir, `GeoLite2-${ucFirst(db)}.mmdb`);
     if (!fs.existsSync(dbPath)) return;
 
-    plugin[db + 'Lookup'] = await plugin.maxmind.open(dbPath, {
+    plugin[`${db}Lookup`] = await plugin.maxmind.open(dbPath, {
+      // this causes tests to hang, which is why mocha runs with --exit
       watchForUpdates: true,
       cache: {
         max: 1000, // max items in cache
@@ -141,7 +142,7 @@ exports.lookup_maxmind = function (next, connection) {
     }
     connection.results.add(plugin, agg_res);
     next();
-  });
+  })
 }
 
 exports.get_geoip = function (ip) {
@@ -168,7 +169,7 @@ exports.get_geoip = function (ip) {
   return res;
 }
 
-exports.get_geoip_maxmind = function (ip) {
+exports.get_geoip_maxmind = (ip) => {
   const plugin = this;
 
   if (!plugin.maxmind) return;
@@ -178,7 +179,7 @@ exports.get_geoip_maxmind = function (ip) {
   if (plugin.countryLookup) return plugin.countryLookup.get(ip);
 }
 
-exports.add_headers = function (next, connection) {
+exports.add_headers = (next, connection) => {
   const plugin = this;
   const txn = connection.transaction;
   if (!txn) return;
@@ -208,7 +209,7 @@ exports.add_headers = function (next, connection) {
   next();
 }
 
-exports.get_local_geo = function (ip, connection) {
+exports.get_local_geo = (ip, connection) => {
   const plugin = this;
   if (plugin.local_geoip) return;  // cached
 
@@ -228,7 +229,7 @@ exports.get_local_geo = function (ip, connection) {
   }
 }
 
-exports.calculate_distance = function (connection, rll, done) {
+exports.calculate_distance = (connection, rll, done) => {
   const plugin = this;
 
   function cb (err, l_ip) {
@@ -257,7 +258,7 @@ exports.calculate_distance = function (connection, rll, done) {
   net_utils.get_public_ip(cb);
 }
 
-exports.haversine = function (lat1, lon1, lat2, lon2) {
+exports.haversine = (lat1, lon1, lat2, lon2) => {
   // calculate the great circle distance using the haversine formula
   // found here: http://www.movable-type.co.uk/scripts/latlong.html
   const EARTH_RADIUS = 6371; // km
@@ -274,7 +275,7 @@ exports.haversine = function (lat1, lon1, lat2, lon2) {
   return (EARTH_RADIUS * c).toFixed(0);
 }
 
-exports.received_headers = function (connection) {
+exports.received_headers = (connection) => {
   const plugin = this;
 
   const received = connection.transaction.header.get_all('received');
@@ -308,7 +309,7 @@ function get_country (gi) {
   return gi.country.iso_code;
 }
 
-exports.originating_headers = function (connection) {
+exports.originating_headers = (connection) => {
   const plugin = this;
   const txn = connection.transaction;
 
