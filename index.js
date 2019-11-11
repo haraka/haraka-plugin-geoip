@@ -137,7 +137,7 @@ exports.lookup_maxmind = function (next, connection) {
 
   plugin.calculate_distance(connection, agg_res.ll, (err, distance) => {
     if (err) {
-      connection.results.add(plugin, {err: err});
+      connection.results.add(plugin, {err});
     }
     if (distance) {
       agg_res.distance = distance;
@@ -238,7 +238,7 @@ exports.calculate_distance = function (connection, rll, done) {
 
   function cb (err, l_ip) {
     if (err) {
-      connection.results.add(plugin, {err: err});
+      connection.results.add(plugin, {err});
       connection.logerror(plugin, err);
     }
 
