@@ -38,7 +38,7 @@ describe('database lookups', function () {
   beforeEach(function (done) {
     this.plugin = new fixtures.plugin('geoip');
     this.plugin.load_geoip_ini();
-    this.plugin.cfg.dbdir = path.resolve('test','fixtures');
+    this.plugin.cfg.main.dbdir = path.resolve('test','fixtures');
     this.plugin.require_maxmind();
     this.plugin.load_dbs().then(() => {
       this.connection = Connection.createConnection();
@@ -131,12 +131,13 @@ describe('database lookups', function () {
 describe('get_geoip_maxmind', function () {
   beforeEach(function (done) {
     this.plugin = new fixtures.plugin('geoip');
-    this.plugin.register().then(() => {
-      if (!this.plugin.dbsLoaded) {
-        this.plugin.logerror("no maxmind DBs loaded!");
-      }
-      done();
-    });
+    this.plugin.load_geoip_ini();
+    this.plugin.cfg.main.dbdir = path.resolve('test','fixtures');
+    this.plugin.require_maxmind();
+    this.plugin.load_dbs().then(() => {
+      this.connection = Connection.createConnection();
+      done()
+    })
   })
 
   it('ipv4 public passes', function (done) {
