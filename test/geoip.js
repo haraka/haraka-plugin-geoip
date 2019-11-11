@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('assert')
+const path   = require('path')
 
 const fixtures     = require('haraka-test-fixtures');
 
@@ -9,9 +10,10 @@ const Connection   = fixtures.connection;
 describe('register', function () {
   beforeEach(function (done) {
     this.plugin = new fixtures.plugin('geoip');
-    this.plugin.register();
-    this.connection = Connection.createConnection();
-    done()
+    this.plugin.register().then(() => {
+      this.connection = Connection.createConnection();
+      done()
+    })
   })
 
   it('config loaded', function (done) {
@@ -21,46 +23,57 @@ describe('register', function () {
   })
 
   it('maxmind loaded', function (done) {
-    if (this.plugin.mm_loads) {
-      assert.ok(this.plugin.maxmind);
-    }
+    assert.ok(this.plugin.maxmind);
     done();
   })
 
-  it('maxmind module loads if installed', function (done) {
+  it('maxmind module loads', function (done) {
     const p = this.plugin;
-    if (this.plugin.require_maxmind()) {
-      assert.ok(p.maxmind);
-    }
+    assert.ok(p.maxmind);
     done();
+  })
+})
+
+describe('database lookups', function () {
+  beforeEach(function (done) {
+    this.plugin = new fixtures.plugin('geoip');
+    this.plugin.load_geoip_ini();
+    this.plugin.cfg.main.dbdir = path.resolve('test','fixtures');
+    this.plugin.require_maxmind();
+    this.plugin.load_dbs().then(() => {
+      this.connection = Connection.createConnection();
+      done()
+    })
+  })
+
+  it('get_geoip_maxmind', function (done) {
+    assert.ok(this.plugin.get_geoip_maxmind('192.48.85.146'));
+    done()
   })
 
   describe('lookup_maxmind', function () {
     it('servedby.tnpi.net', function (done) {
-      const cb = function () {
-        if (this.plugin.maxmind && this.plugin.dbsLoaded) {
-          const r = this.connection.results.get('geoip');
-          assert.equal('US', r.country);
-          assert.equal('NA', r.continent);
-        }
-        done();
-      }.bind(this);
 
       this.connection.remote.ip='192.48.85.146';
       this.plugin.cfg.main.calc_distance=true;
-      this.plugin.lookup_maxmind(cb, this.connection);
+
+      this.plugin.lookup_maxmind(() => {
+        const r = this.connection.results.get('geoip');
+        assert.ok(r);
+        assert.equal('US', r.country);
+        assert.equal('NA', r.continent);
+        done();
+      }, this.connection);
     })
   })
 
   describe('get_geoip', function () {
     it('no IP fails', function (done) {
-      if (!this.plugin.dbsLoaded) return done();
       assert.ok(!this.plugin.get_geoip());
       done();
     })
 
     it('ipv4 private fails', function (done) {
-      if (!this.plugin.dbsLoaded) return done();
       assert.ok(!this.plugin.get_geoip('192.168.85.146'));
       done();
     })
@@ -71,33 +84,29 @@ describe('register', function () {
     // WMISD  [ 38, -97 ]
 
     it('seattle to michigan', function (done) {
-      this.plugin.register();
-      if (!this.plugin.db_loaded) {
-        return done();
-      }
+
       this.plugin.cfg.main.calc_distance=true;
-      this.plugin.local.ip='192.48.85.146';
+      this.plugin.local_ip='192.48.85.146';
       this.connection.remote.ip='199.176.179.3';
+      delete this.plugin.local_geoip;
       this.plugin.calculate_distance(
         this.connection, [38, -97], (err, d) => {
           if (err) console.error(err);
-          assert.ok(d);
+          assert.ok(d > 50 && d < 4000);
           done();
         })
     })
 
     it('congo to china', function (done) {
-      this.plugin.register();
-      if (!this.plugin.db_loaded) {
-        return done();
-      }
+
       this.plugin.cfg.main.calc_distance=true;
-      this.plugin.local.ip='41.78.192.1';
+      this.plugin.local_ip='41.78.192.1';
       this.connection.remote.ip='60.168.181.159';
+      delete this.plugin.local_geoip;
       this.plugin.calculate_distance(
         this.connection, [38, -97], (err, d) => {
           if (err) console.error(err);
-          assert.ok(d);
+          assert.ok(d > 10000);
           done();
         });
     })
@@ -123,29 +132,21 @@ describe('get_geoip_maxmind', function () {
   beforeEach(function (done) {
     this.plugin = new fixtures.plugin('geoip');
     this.plugin.load_geoip_ini();
+    this.plugin.cfg.main.dbdir = path.resolve('test','fixtures');
     this.plugin.require_maxmind();
-    if (!this.plugin.maxmind) {
-      this.plugin.logerror("maxmind not loaded!");
-      return done();
-    }
-    this.plugin.load_dbs();
-    if (!this.plugin.dbsLoaded) {
-      this.plugin.logerror("no maxmind DBs loaded!");
-    }
-    done()
+    this.plugin.load_dbs().then(() => {
+      this.connection = Connection.createConnection();
+      done()
+    })
   })
 
   it('ipv4 public passes', function (done) {
-    if (!this.plugin.maxmind) return done();
-    if (!this.plugin.dbsLoaded) return done();
     const r = this.plugin.get_geoip_maxmind('192.48.85.146');
     assert.equal(r.country.iso_code, 'US');
     done();
   })
 
   it('ipv6 public passes', function (done) {
-    if (!this.plugin.maxmind) return done();
-    if (!this.plugin.dbsLoaded) return done();
     const r = this.plugin.get_geoip_maxmind('2607:f060:b008:feed::6');
     assert.equal(r.country.iso_code, 'US');
     done();

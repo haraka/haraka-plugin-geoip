@@ -1,12 +1,21 @@
 
+## 1.0.12 - 2019-11-10
+
+- bump maxmind to v4
+- revert exported arrow functions, they break the plugin
+- include DBs and remove test conditionals that masked broken tests
+
+
 ## 1.0.11 - 2019-10-13
 
 - bump maxmind version to 3.1.2
 - switch tests from nodeunit to mocha
 
+
 ## 1.0.10 - 2019-07-16
 
 - move from maxmind.openSync to async maxmind.open, #35
+
 
 ## 1.0.9 - 2019-07-09
 
