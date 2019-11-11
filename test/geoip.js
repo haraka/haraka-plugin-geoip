@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('assert')
+const path   = require('path')
 
 const fixtures     = require('haraka-test-fixtures');
 
@@ -30,6 +31,19 @@ describe('register', function () {
     const p = this.plugin;
     assert.ok(p.maxmind);
     done();
+  })
+})
+
+describe('database lookups', function () {
+  beforeEach(function (done) {
+    this.plugin = new fixtures.plugin('geoip');
+    this.plugin.load_geoip_ini();
+    this.plugin.cfg.dbdir = path.resolve('test','fixtures');
+    this.plugin.require_maxmind();
+    this.plugin.load_dbs().then(() => {
+      this.connection = Connection.createConnection();
+      done()
+    })
   })
 
   it('get_geoip_maxmind', function (done) {
