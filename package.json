@@ -7,10 +7,10 @@
     "test": "test"
   },
   "scripts": {
-    "test": "./node_modules/.bin/_mocha --exit",
-    "lint": "./node_modules/.bin/eslint index.js test/*.js",
-    "lintfix": "./node_modules/.bin/eslint --fix index.js test/*.js",
-    "coverage": "./node_modules/.bin/istanbul cover ./run_tests"
+    "test": "npx mocha --exit",
+    "lint": "npx eslint index.js test/*.js",
+    "lintfix": "npx eslint --fix index.js test/*.js",
+    "coverage": "npx istanbul cover npm test"
   },
   "repository": {
     "type": "git",
