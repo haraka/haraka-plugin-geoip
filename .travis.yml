@@ -4,6 +4,7 @@ node_js:
     - "12"
 
 before_script:
+    - git merge test-dbs
 
 script:
     - npm run lint
