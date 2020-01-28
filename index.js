@@ -67,7 +67,7 @@ exports.load_dbs = async function () {
     const dbPath = path.join(dbdir, `GeoLite2-${ucFirst(db)}.mmdb`);
     if (!fs.existsSync(dbPath)) {
       plugin.logdebug(`missing DB ${dbPath}`)
-      return;
+      continue;
     }
 
     plugin[`${db}Lookup`] = await plugin.maxmind.open(dbPath, {
