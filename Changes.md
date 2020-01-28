@@ -1,3 +1,6 @@
+## 1.0.13 - 2020-01-28
+
+- properly continue loop when one of database file missing
 
 ## 1.0.12 - 2019-11-10
 
