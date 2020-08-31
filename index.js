@@ -191,7 +191,7 @@ exports.add_headers = function (next, connection) {
   txn.remove_header('X-Haraka-GeoIP');
   txn.remove_header('X-Haraka-GeoIP-Received');
 
-  const r = connection.results.get('geoip');
+  const r = connection.results.get('haraka-plugin-geoip');
   if (r) {
     if (r.country) txn.add_header('X-Haraka-GeoIP',   r.human  );
     if (r.asn)     txn.add_header('X-Haraka-ASN',     r.asn    );
