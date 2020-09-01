@@ -66,6 +66,7 @@ describe('lookup_geoip_lite', function () {
 
 
   it.skip('seattle: lat + long', function (done) {
+    // lookup fails with Lite
     this.connection.remote.ip='192.48.85.146';
     this.plugin.lookup_geoip_lite((rc) => {
       if (this.plugin.geoip) {
