@@ -1,3 +1,7 @@
+## 1.0.14 - 2020-09-01
+
+- fix connection result access since plugin was renamed from 'geoip' > 'haraka-plugin-geoip'
+
 ## 1.0.13 - 2020-01-28
 
 - properly continue loop when one of database file missing
