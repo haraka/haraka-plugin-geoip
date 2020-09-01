@@ -191,7 +191,6 @@ exports.get_geoip_maxmind = function (ip) {
     }
     catch (ignore) {}
   }
-  return;
 }
 
 exports.add_headers = function (next, connection) {
