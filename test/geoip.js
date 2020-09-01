@@ -46,6 +46,7 @@ describe('database lookups', function () {
   })
 
   describe('lookup_maxmind', function () {
+    this.timeout(4000)
     it('servedby.tnpi.net', function (done) {
 
       this.connection.remote.ip='192.48.85.146';
