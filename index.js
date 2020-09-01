@@ -1,12 +1,6 @@
-const fs        = require('fs');
 const net       = require('net');
-const path      = require('path');
 
 const net_utils = require('haraka-net-utils');
-
-function ucFirst (string) {
-  return string.charAt(0).toUpperCase() + string.slice(1);
-}
 
 exports.register = function () {
   this.load_geoip_ini();
@@ -131,10 +125,10 @@ exports.get_geoip = function (ip) {
 
   // console.log(res);
   const show = [];
-  if (res.continent && res.continent.code) show.push(res.continent.code);
-  if (res.country   && res.country.iso_code) show.push(res.country.iso_code);
-  if (res.subdivisions && res.subdivisions[0]) show.push(res.subdivisions[0].iso_code);
-  if (res.city && res.city.names) show.push(res.city.names.en);
+  if (res.continentCode) show.push(res.continentCode);
+  if (res.countryCode || res.code) show.push(res.countryCode || res.code);
+  if (res.region)        show.push(res.region);
+  if (res.city)          show.push(res.city);
   res.human = show.join(', ');
 
   return res;
@@ -277,7 +271,11 @@ exports.received_headers = function (connection) {
 
 function get_country (gi) {
   if (!gi) return '';
-  if (!gi.country) return '';
+  if (!gi.country) {
+    if (gi.countryCode) return gi.countryCode; // geoip-lite
+    if (gi.code) return gi.code;               // geoip-lite
+    return '';
+  }
   if (!gi.country.iso_code) return '';
   return gi.country.iso_code;
 }

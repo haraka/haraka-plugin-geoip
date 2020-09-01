@@ -1,9 +1,7 @@
 [![Build Status][ci-img]][ci-url]
 [![Windows Build status][ci-win-img]][ci-win-url]
 [![Code Climate][clim-img]][clim-url]
-[![Greenkeeper badge][gk-img]][gk-url]
 [![NPM][npm-img]][npm-url]
-<!--[![Code Coverage][cov-img]][cov-url]-->
 
 # geoip
 
@@ -12,6 +10,10 @@ provide geographic information about mail senders.
 # SYNOPSIS
 
 Use MaxMind's GeoIP databases to report geographic information about senders. This plugin uses the [geoip-lite](https://github.com/bluesmoon/node-geoip) node module.
+
+# INSTALL
+
+Install the npm geoip module you prefer:
 
     npm install -g geoip-lite
 
@@ -53,6 +55,13 @@ This calculation requires a 'from' IP address. This will typically be the
 public IP of your mail server. If Haraka is bound to a private IP, net\_utils
 will attempt to determine your public IP. If that doesn't work, edit
 config/smtp.ini and set `public_ip`.
+
+- show\_city
+
+show city data in logs and headers. City data is less accurate than country.
+
+- show\_region in logs and headers. Regional data are US states, Canadian
+  provinces and such.
 
 Set a connection result to true if the distance exceeds this many kilometers.
 
