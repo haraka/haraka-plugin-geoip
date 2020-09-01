@@ -99,10 +99,10 @@ reality, it is not. Accuracy should be within 1%.
 [3]: https://github.com/haraka/haraka-results
 [4]: http://www.cc.gatech.edu/~feamster/papers/snare-usenix09.pdf
 
-[ci-img]: https://travis-ci.org/haraka/haraka-plugin-geoip.svg
-[ci-url]: https://travis-ci.org/haraka/haraka-plugin-geoip
-[ci-win-img]: https://ci.appveyor.com/api/projects/status/ifs9fdewpobcpis0?svg=true
-[ci-win-url]: https://ci.appveyor.com/project/msimerson/haraka-plugin-geoip
+[ci-img]: https://github.com/haraka/haraka-plugin-geoip/workflows/Plugin%20Tests/badge.svg
+[ci-url]: https://github.com/haraka/haraka-plugin-geoip/actions?query=workflow%3A%22Plugin+Tests%22
+[ci-win-img]: https://github.com/haraka/haraka-plugin-geoip/workflows/Plugin%20Tests%20-%20Windows/badge.svg
+[ci-win-url]: https://github.com/haraka/haraka-plugin-geoip/actions?query=workflow%3A%22Plugin+Tests+-+Windows%22
 [clim-img]: https://codeclimate.com/github/haraka/haraka-plugin-geoip/badges/gpa.svg
 [clim-url]: https://codeclimate.com/github/haraka/haraka-plugin-geoip
 [npm-img]: https://nodei.co/npm/haraka-plugin-geoip.png
