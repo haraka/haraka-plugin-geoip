@@ -180,15 +180,11 @@ exports.get_geoip_maxmind = function (ip) {
   if (!plugin.dbsLoaded) return;
 
   if (plugin.cityLookup) {
-    try {
-      return plugin.cityLookup.get(ip);
-    }
+    try { return plugin.cityLookup.get(ip); }
     catch (ignore) {}
   }
   if (plugin.countryLookup) {
-    try {
-      return plugin.countryLookup.get(ip);
-    }
+    try { return plugin.countryLookup.get(ip); }
     catch (ignore) {}
   }
 }
