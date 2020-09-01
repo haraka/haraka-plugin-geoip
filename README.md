@@ -15,9 +15,9 @@ Use MaxMind's GeoIP databases to report geographic information about senders.
 
 This plugin supports several geoip modules:
 
-    * [maxmind](https://github.com/runk/node-maxmind) 0.6 (maxmind v1)
-    * [maxmind](https://github.com/runk/node-maxmind) 1.0+ (maxmind v2)
-    * [geoip-lite](https://github.com/bluesmoon/node-geoip)
+* [maxmind](https://github.com/runk/node-maxmind) 0.6 (maxmind v1)
+* [maxmind](https://github.com/runk/node-maxmind) 1.0+ (maxmind v2)
+* [geoip-lite](https://github.com/bluesmoon/node-geoip)
 
 Support for `geoip-lite` is published to npm separately as [haraka-plugin-geoip-lite][2].
 
@@ -104,10 +104,8 @@ reality, it is not. Accuracy should be within 1%.
 
 # SEE ALSO
 
-MaxMind: http://www.maxmind.com/
-
-Databases: http://geolite.maxmind.com/download/geoip/database
-
+- [MaxMind](http://www.maxmind.com/)
+- [Databases](http://geolite.maxmind.com/download/geoip/database)
 
 
 [1]: https://github.com/msimerson/maxmind-geolite-mirror
