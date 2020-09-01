@@ -179,8 +179,19 @@ exports.get_geoip_maxmind = function (ip) {
   if (!plugin.maxmind) return;
   if (!plugin.dbsLoaded) return;
 
-  if (plugin.cityLookup) return plugin.cityLookup.get(ip);
-  if (plugin.countryLookup) return plugin.countryLookup.get(ip);
+  if (plugin.cityLookup) {
+    try {
+      return plugin.cityLookup.get(ip);
+    }
+    catch (ignore) {}
+  }
+  if (plugin.countryLookup) {
+    try {
+      return plugin.countryLookup.get(ip);
+    }
+    catch (ignore) {}
+  }
+  return;
 }
 
 exports.add_headers = function (next, connection) {
@@ -334,5 +345,5 @@ exports.originating_headers = function (connection) {
   if (!gi) return;
 
   connection.loginfo(plugin, `originating=${found_ip} ${gi.human}`);
-  return found_ip + ':' + get_country(gi);
+  return `${found_ip}:${get_country(gi)}`;
 }

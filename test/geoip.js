@@ -22,14 +22,8 @@ describe('register', function () {
     done();
   })
 
-  it('maxmind loaded', function (done) {
+  it('maxmind module loaded', function (done) {
     assert.ok(this.plugin.maxmind);
-    done();
-  })
-
-  it('maxmind module loads', function (done) {
-    const p = this.plugin;
-    assert.ok(p.maxmind);
     done();
   })
 })
@@ -38,8 +32,8 @@ describe('database lookups', function () {
   beforeEach(function (done) {
     this.plugin = new fixtures.plugin('geoip');
     this.plugin.load_geoip_ini();
-    this.plugin.cfg.main.dbdir = path.resolve('test','fixtures');
     this.plugin.require_maxmind();
+    this.plugin.cfg.main.dbdir = path.resolve('test','fixtures');
     this.plugin.load_dbs().then(() => {
       this.connection = Connection.createConnection();
       done()
