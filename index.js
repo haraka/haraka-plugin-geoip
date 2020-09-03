@@ -4,20 +4,32 @@ const path      = require('path');
 
 const net_utils = require('haraka-net-utils');
 
+const plugin_name = 'geoip'
+
 function ucFirst (string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
 exports.register = async function () {
-  const plugin = this;
+  this.load_geoip_ini();
 
-  plugin.load_geoip_ini();
-  plugin.require_maxmind();
-  await plugin.load_dbs();
+  if (plugin_name === 'geoip') {
+    this.require_maxmind();
+    await this.load_dbs();
 
-  if (plugin.dbsLoaded) {
-    plugin.register_hook('connect',   'lookup_maxmind');
-    plugin.register_hook('data_post', 'add_headers');
+    if (this.dbsLoaded) {
+      this.register_hook('connect',   'lookup_maxmind');
+      this.register_hook('data_post', 'add_headers');
+    }
+  }
+
+  if (plugin_name === 'geoip-lite') {
+    this.load_geoip_lite();
+    if (this.geoip) {
+      this.loginfo('provider geoip-lite');
+      this.register_hook('connect',   'lookup_geoip_lite');
+      this.register_hook('data_post', 'add_headers');
+    }
   }
 }
 
@@ -33,12 +45,68 @@ exports.load_geoip_ini = function () {
   },
   function () {
     plugin.load_geoip_ini();
-  });
+  })
 
   // legacy settings
   const m = plugin.cfg.main;
   if (m.show_city  ) plugin.cfg.show.city = m.show_city;
   if (m.show_region) plugin.cfg.show.region = m.show_region;
+}
+
+exports.load_geoip_lite = function () {
+
+  try {
+    this.geoip = require('geoip-lite');
+  }
+  catch (e) {
+    this.logerror("unable to load geoip-lite, try\n\n" +
+              "\t'npm install -g geoip-lite'\n\n");
+    return;
+  }
+
+  if (!this.geoip) {
+    // geoip-lite dropped node 0.8 support, it may not have loaded
+    this.logerror('unable to load geoip-lite');
+  }
+}
+
+exports.lookup_geoip_lite = function (next, connection) {
+  const plugin = this;
+
+  // geoip results look like this:
+  // range: [ 3479299040, 3479299071 ],
+  //    country: 'US',
+  //    region: 'CA',
+  //    city: 'San Francisco',
+  //    ll: [37.7484, -122.4156]
+
+  if (!plugin.geoip) {
+    connection.logerror(plugin, 'geoip-lite not loaded');
+    return next();
+  }
+
+  const r = plugin.get_geoip_lite(connection.remote.ip);
+  if (!r) return next();
+
+  connection.results.add(plugin, r);
+
+  const show = [];
+  if (r.country  && r.country !== '--') show.push(r.country);
+  if (r.region   && plugin.cfg.main.show_region) { show.push(r.region); }
+  if (r.city     && plugin.cfg.main.show_city  ) { show.push(r.city); }
+
+  if (show.length === 0) return next();
+
+  if (!plugin.cfg.main.calc_distance) {
+    connection.results.add(plugin, {human: show.join(', '), emit:true});
+    return next();
+  }
+
+  plugin.calculate_distance(connection, r.ll, function (err, distance) {
+    if (distance) show.push(`${distance}km`);
+    connection.results.add(plugin, {human: show.join(', '), emit:true});
+    next();
+  })
 }
 
 exports.require_maxmind = function () {
@@ -159,18 +227,42 @@ exports.get_geoip = function (ip) {
       return;
   }
 
-  const res = plugin.get_geoip_maxmind(ip);
+  let res;
+  if (plugin_name === 'geoip')      res = plugin.get_geoip_maxmind(ip);
+  if (plugin_name === 'geoip-lite') res = plugin.get_geoip_lite(ip);
   if (!res) return;
 
   // console.log(res);
   const show = [];
-  if (res.continent && res.continent.code) show.push(res.continent.code);
-  if (res.country   && res.country.iso_code) show.push(res.country.iso_code);
-  if (res.subdivisions && res.subdivisions[0]) show.push(res.subdivisions[0].iso_code);
-  if (res.city && res.city.names) show.push(res.city.names.en);
-  res.human = show.join(', ');
 
+  if (plugin_name === 'geoip-lite') {
+    if (res.continentCode) show.push(res.continentCode);
+    if (res.countryCode || res.code) show.push(res.countryCode || res.code);
+    if (res.region)        show.push(res.region);
+    if (res.city)          show.push(res.city);
+  }
+
+  if (plugin_name === 'geoip') {     // maxmind
+    if (res.continent && res.continent.code) show.push(res.continent.code);
+    if (res.country   && res.country.iso_code) show.push(res.country.iso_code);
+    if (res.subdivisions && res.subdivisions[0]) show.push(res.subdivisions[0].iso_code);
+    if (res.city && res.city.names) show.push(res.city.names.en);
+  }
+
+  res.human = show.join(', ');
   return res;
+}
+
+exports.get_geoip_lite = function (ip) {
+  if (!this.geoip) return;
+  if (!net.isIPv4(ip)) return;
+
+  const result = this.geoip.lookup(ip);
+  if (result && result.ll) {
+    result.latitude = result.ll[0];
+    result.longitude = result.ll[1];
+  }
+  return result;
 }
 
 exports.get_geoip_maxmind = function (ip) {
@@ -197,7 +289,7 @@ exports.add_headers = function (next, connection) {
   txn.remove_header('X-Haraka-GeoIP');
   txn.remove_header('X-Haraka-GeoIP-Received');
 
-  const r = connection.results.get('haraka-plugin-geoip');
+  const r = connection.results.get(plugin_name);
   if (r) {
     if (r.country) txn.add_header('X-Haraka-GeoIP',   r.human  );
     if (r.asn)     txn.add_header('X-Haraka-ASN',     r.asn    );
@@ -251,7 +343,8 @@ exports.calculate_distance = function (connection, rll, done) {
     plugin.get_local_geo(l_ip, connection);
     if (!plugin.local_ip || !plugin.local_geoip) return done();
 
-    const gl = plugin.local_geoip.location;
+    // maxmind has 'location' property, geoip-lite doesn't
+    const gl = plugin.local_geoip.location ? plugin.local_geoip.location : plugin.local_geoip;
     const gcd = plugin.haversine(gl.latitude, gl.longitude, rll[0], rll[1]);
     if (gcd && isNaN(gcd)) return done();
 
@@ -314,9 +407,16 @@ exports.received_headers = function (connection) {
 
 function get_country (gi) {
   if (!gi) return '';
-  if (!gi.country) return '';
-  if (!gi.country.iso_code) return '';
-  return gi.country.iso_code;
+  if (plugin_name === 'geoip') {
+    if (!gi.country) return ''
+    if (!gi.country.iso_code) return '';
+    return gi.country.iso_code;
+  }
+
+  // geoip-lite
+  if (gi.countryCode) return gi.countryCode;
+  if (gi.code) return gi.code;
+  return ''
 }
 
 exports.originating_headers = function (connection) {
