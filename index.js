@@ -13,23 +13,44 @@ function ucFirst (string) {
 exports.register = async function () {
   this.load_geoip_ini();
 
-  if (plugin_name === 'geoip') {
-    this.require_maxmind();
-    await this.load_dbs();
+  if (plugin_name === 'geoip-lite') return this.register_geolite()
 
-    if (this.dbsLoaded) {
-      this.register_hook('connect',   'lookup_maxmind');
-      this.register_hook('data_post', 'add_headers');
-    }
+  try {
+    this.maxmind = require('maxmind');
+  }
+  catch (e) {
+    this.logerror(e.message);
+    this.logerror(`unable to load maxmind, try\n\n\t'npm install -g maxmind'\n\n`);
   }
 
-  if (plugin_name === 'geoip-lite') {
-    this.load_geoip_lite();
-    if (this.geoip) {
-      this.loginfo('provider geoip-lite');
-      this.register_hook('connect',   'lookup_geoip_lite');
-      this.register_hook('data_post', 'add_headers');
-    }
+  await this.load_dbs();
+
+  if (this.dbsLoaded) {
+    this.register_hook('connect',   'lookup_maxmind');
+    this.register_hook('data_post', 'add_headers');
+  }
+}
+
+exports.register_geolite = function () {
+
+  try {
+    this.geoip = require('geoip-lite');
+  }
+  catch (e) {
+    this.logerror(`unable to load geoip-lite, try\n\n\t'npm install -g geoip-lite'\n\n`);
+    return
+  }
+
+  if (!this.geoip) {
+    // geoip-lite dropped node 0.8 support, it may not have loaded
+    this.logerror('unable to load geoip-lite')
+    return
+  }
+
+  if (this.geoip) {
+    this.loginfo('provider geoip-lite');
+    this.register_hook('connect',   'lookup_geoip_lite');
+    this.register_hook('data_post', 'add_headers');
   }
 }
 
@@ -51,76 +72,6 @@ exports.load_geoip_ini = function () {
   const m = plugin.cfg.main;
   if (m.show_city  ) plugin.cfg.show.city = m.show_city;
   if (m.show_region) plugin.cfg.show.region = m.show_region;
-}
-
-exports.load_geoip_lite = function () {
-
-  try {
-    this.geoip = require('geoip-lite');
-  }
-  catch (e) {
-    this.logerror("unable to load geoip-lite, try\n\n" +
-              "\t'npm install -g geoip-lite'\n\n");
-    return;
-  }
-
-  if (!this.geoip) {
-    // geoip-lite dropped node 0.8 support, it may not have loaded
-    this.logerror('unable to load geoip-lite');
-  }
-}
-
-exports.lookup_geoip_lite = function (next, connection) {
-  const plugin = this;
-
-  // geoip results look like this:
-  // range: [ 3479299040, 3479299071 ],
-  //    country: 'US',
-  //    region: 'CA',
-  //    city: 'San Francisco',
-  //    ll: [37.7484, -122.4156]
-
-  if (!plugin.geoip) {
-    connection.logerror(plugin, 'geoip-lite not loaded');
-    return next();
-  }
-
-  const r = plugin.get_geoip_lite(connection.remote.ip);
-  if (!r) return next();
-
-  connection.results.add(plugin, r);
-
-  const show = [];
-  if (r.country  && r.country !== '--') show.push(r.country);
-  if (r.region   && plugin.cfg.main.show_region) { show.push(r.region); }
-  if (r.city     && plugin.cfg.main.show_city  ) { show.push(r.city); }
-
-  if (show.length === 0) return next();
-
-  if (!plugin.cfg.main.calc_distance) {
-    connection.results.add(plugin, {human: show.join(', '), emit:true});
-    return next();
-  }
-
-  plugin.calculate_distance(connection, r.ll, function (err, distance) {
-    if (distance) show.push(`${distance}km`);
-    connection.results.add(plugin, {human: show.join(', '), emit:true});
-    next();
-  })
-}
-
-exports.require_maxmind = function () {
-  const plugin = this;
-
-  try {
-    plugin.maxmind = require('maxmind');
-    return true;
-  }
-  catch (e) {
-    plugin.logerror(e.message);
-  }
-
-  plugin.logerror(`unable to load maxmind, try\n\n\t'npm install -g maxmind'\n\n`);
 }
 
 exports.load_dbs = async function () {
@@ -185,6 +136,50 @@ exports.get_locales = function (loc) {
   }
 
   return [show, agg_res];
+}
+
+exports.lookup = function (next, connection) {
+  if (plugin_name === 'geoip') return this.lookup_maxmind(next, connection)
+  return this.lookup_geoip_lite(next, connection)
+}
+
+exports.lookup_geoip_lite = function (next, connection) {
+  const plugin = this;
+
+  // geoip results look like this:
+  // range: [ 3479299040, 3479299071 ],
+  //    country: 'US',
+  //    region: 'CA',
+  //    city: 'San Francisco',
+  //    ll: [37.7484, -122.4156]
+
+  if (!plugin.geoip) {
+    connection.logerror(plugin, 'geoip-lite not loaded');
+    return next();
+  }
+
+  const r = plugin.get_geoip_lite(connection.remote.ip);
+  if (!r) return next();
+
+  connection.results.add(plugin, r);
+
+  const show = [];
+  if (r.country  && r.country !== '--') show.push(r.country);
+  if (r.region   && plugin.cfg.main.show_region) show.push(r.region);
+  if (r.city     && plugin.cfg.main.show_city  ) show.push(r.city);
+
+  if (show.length === 0) return next();
+
+  if (!plugin.cfg.main.calc_distance) {
+    connection.results.add(plugin, {human: show.join(', '), emit:true});
+    return next();
+  }
+
+  plugin.calculate_distance(connection, r.ll, function (err, distance) {
+    if (distance) show.push(`${distance}km`);
+    connection.results.add(plugin, {human: show.join(', '), emit:true});
+    next();
+  })
 }
 
 exports.lookup_maxmind = function (next, connection) {
@@ -406,14 +401,14 @@ exports.received_headers = function (connection) {
 }
 
 function get_country (gi) {
+  if (plugin_name === 'geoip-lite') return get_country_lite(gi)
   if (!gi) return '';
-  if (plugin_name === 'geoip') {
-    if (!gi.country) return ''
-    if (!gi.country.iso_code) return '';
-    return gi.country.iso_code;
-  }
+  if (!gi.country) return ''
+  if (!gi.country.iso_code) return '';
+  return gi.country.iso_code;
+}
 
-  // geoip-lite
+function get_country_lite (gi) {
   if (gi.countryCode) return gi.countryCode;
   if (gi.code) return gi.code;
   return ''

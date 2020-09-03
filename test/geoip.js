@@ -27,10 +27,9 @@ describe('register', function () {
   }
 
   if (plugin_name === 'geoip-lite') {
-    it('geoip-lite module loads if installed', function (done) {
-      if (this.plugin.load_geoip_lite()) {
-        assert.ok(this.geoip);
-      }
+    it('geoip-lite module loads', function (done) {
+      this.plugin.register_geolite()
+      assert.ok(this.plugin.geoip);
       done();
     })
   }
@@ -86,27 +85,29 @@ describe('database lookups', function () {
     }
   })
 
-  describe('lookup_geoip_lite', function () {
+  describe('lookup', function () {
 
-    it.skip('seattle: lat + long', function (done) {  // fails with Lite
+    it('seattle: lat + long', function (done) {
       this.connection.remote.ip='192.48.85.146';
-      this.plugin.lookup_geoip_lite((rc) => {
+      this.plugin.lookup((rc) => {
         const r = this.connection.results.get('geoip');
-        assert.equal(47.6738, r.ll[0]);
-        assert.equal(-122.3419, r.ll[1]);
-        assert.ok(r);
+        // assert.equal(47.6738, r.ll[0]);  // invalid loc with Lite
+        // assert.equal(-122.3419, r.ll[1]);
+        assert.equal('US', r.country);
+        if (r.continent) assert.equal('NA', r.continent);
         done();
       }, this.connection);
     })
 
     it('michigan: lat + long', function (done) {
       this.connection.remote.ip='199.176.179.3';
-      this.plugin.lookup_geoip_lite((rc) => {
+      this.plugin.lookup((rc) => {
         const r = this.connection.results.get('geoip');
         // console.log(r)
         assert.equal(44.2504, r.ll[0]);
         assert.equal(-85.43,  r.ll[1]);
-        assert.ok(r);
+        assert.equal('US', r.country);
+        if (r.continent) assert.equal('NA', r.continent);
         done();
       }, this.connection)
     })
@@ -134,12 +135,11 @@ describe('database lookups', function () {
       this.plugin.local_ip='41.78.192.1';
       this.connection.remote.ip='60.168.181.159';
       delete this.plugin.local_geoip;
-      this.plugin.calculate_distance(
-        this.connection, [38, -97], (err, d) => {
-          if (err) console.error(err);
-          assert.ok(d > 10000);
-          done();
-        });
+      this.plugin.calculate_distance(this.connection, [38, -97], (err, d) => {
+        if (err) console.error(err);
+        assert.ok(d > 10000);
+        done();
+      })
     })
   })
 })
