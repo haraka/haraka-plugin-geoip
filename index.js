@@ -165,8 +165,8 @@ exports.lookup_geoip_lite = function (next, connection) {
 
   const show = [];
   if (r.country  && r.country !== '--') show.push(r.country);
-  if (r.region   && plugin.cfg.main.show_region) { show.push(r.region); }
-  if (r.city     && plugin.cfg.main.show_city  ) { show.push(r.city); }
+  if (r.region   && plugin.cfg.main.show_region) show.push(r.region);
+  if (r.city     && plugin.cfg.main.show_city  ) show.push(r.city);
 
   if (show.length === 0) return next();
 
