@@ -1,158 +1,167 @@
 'use strict';
 
 const assert       = require('assert')
+const path         = require('path')
 
 const fixtures     = require('haraka-test-fixtures');
 
-const Connection   = fixtures.connection;
-
-function _set_up (done) {
-  this.plugin = new fixtures.plugin('../index');
-  this.plugin.load_geoip_ini();
-  this.connection = Connection.createConnection();
-  done();
-}
+const plugin_name  = 'geoip-lite';
 
 describe('register', function () {
   beforeEach(function (done) {
-    this.plugin = new fixtures.plugin('../index');
-    this.plugin.register();
-    done()
+    this.plugin = new fixtures.plugin('geoip');
+    this.plugin.register().then(done)
   })
 
-  it('loads config', function (done) {
-    assert.ok(this.plugin.cfg)
-    assert.ok(this.plugin.cfg.main)
-    done()
+  it('config loaded', function (done) {
+    assert.ok(this.plugin.cfg);
+    assert.ok(this.plugin.cfg.main);
+    done();
   })
 
-  it('geoip-lite module loads if installed', function (done) {
-    if (this.plugin.load_geoip_lite()) {
-      assert.ok(this.geoip);
+  if (plugin_name === 'geoip') {
+    it('maxmind module loaded', function (done) {
+      assert.ok(this.plugin.maxmind);
+      done();
+    })
+  }
+
+  if (plugin_name === 'geoip-lite') {
+    it('geoip-lite module loads if installed', function (done) {
+      if (this.plugin.load_geoip_lite()) {
+        assert.ok(this.geoip);
+      }
+      done();
+    })
+  }
+})
+
+describe('database lookups', function () {
+  beforeEach(function (done) {
+    this.plugin = new fixtures.plugin('geoip');
+    this.plugin.register().then(() => {
+      this.connection = fixtures.connection.createConnection();
+    });
+
+    if (plugin_name === 'geoip') {
+      this.plugin.cfg.main.dbdir = path.resolve('test','fixtures');
+      this.plugin.load_dbs().then(done)
     }
-    done();
-  })
-})
-
-// ServedBy ll: [ 47.6738, -122.3419 ],
-// WMISD  [ 38, -97 ]
-
-describe('get_geoip', function () {
-  beforeEach(function (done) {
-    this.plugin = new fixtures.plugin('../index');
-    this.plugin.register();
-    done()
+    else {
+      done()
+    }
   })
 
-  it('no IP fails', function (done) {
-    assert.ok(!this.plugin.get_geoip());
-    done();
+  describe('get_geoip', function () {
+
+    it('no IP fails', function (done) {
+      assert.ok(!this.plugin.get_geoip());
+      done();
+    })
+
+    it('ipv4 private fails', function (done) {
+      assert.ok(!this.plugin.get_geoip('192.168.2.3'));
+      done();
+    })
+
+    it('ipv4 public passes', function (done) {
+      const r = this.plugin.get_geoip('192.48.85.146');
+      if (plugin_name === 'geoip') {
+        assert.equal(r.continent.code,   'NA');
+        assert.equal(r.country.iso_code, 'US');
+      }
+      if (plugin_name === 'geoip-lite') {
+        assert.equal(r.country, 'US');
+      }
+      done();
+    })
+
+    if (plugin_name === 'geoip') {
+      it('ipv6 public passes', function (done) {
+        const r = this.plugin.get_geoip('2607:f060:b008:feed::6');
+        assert.equal(r.continent.code,   'NA');
+        assert.equal(r.country.iso_code, 'US');
+        done();
+      })
+    }
   })
-  it('ipv4 private fails', function (done) {
-    assert.ok(!this.plugin.get_geoip('192.168.85.146'));
-    done();
-  })
-})
 
-describe('lookup_geoip_lite', function () {
+  describe('lookup_geoip_lite', function () {
 
-  beforeEach(function (done) {
-    this.plugin = new fixtures.plugin('../index');
-    this.plugin.load_geoip_ini();
-    this.connection = Connection.createConnection();
-    this.plugin.load_geoip_lite();
-    done();
-  })
-
-
-  it.skip('seattle: lat + long', function (done) {
-    // lookup fails with Lite
-    this.connection.remote.ip='192.48.85.146';
-    this.plugin.lookup_geoip_lite((rc) => {
-      if (this.plugin.geoip) {
-        const r = this.connection.results.get('../index');
+    it.skip('seattle: lat + long', function (done) {  // fails with Lite
+      this.connection.remote.ip='192.48.85.146';
+      this.plugin.lookup_geoip_lite((rc) => {
+        const r = this.connection.results.get('geoip');
         assert.equal(47.6738, r.ll[0]);
         assert.equal(-122.3419, r.ll[1]);
         assert.ok(r);
-      }
-      done();
-    }, this.connection);
-  })
+        done();
+      }, this.connection);
+    })
 
-  it('michigan: lat + long', function (done) {
-    this.connection.remote.ip='199.176.179.3';
-    this.plugin.lookup_geoip_lite((rc) => {
-      if (this.plugin.geoip) {
-        const r = this.connection.results.get('../index');
+    it('michigan: lat + long', function (done) {
+      this.connection.remote.ip='199.176.179.3';
+      this.plugin.lookup_geoip_lite((rc) => {
+        const r = this.connection.results.get('geoip');
+        // console.log(r)
         assert.equal(44.2504, r.ll[0]);
-        assert.equal(-85.43, r.ll[1]);
+        assert.equal(-85.43,  r.ll[1]);
         assert.ok(r);
-      }
-      done();
-    }, this.connection);
-  })
-})
-
-describe('get_geoip_lite', function () {
-
-  beforeEach(function (done) {
-    this.plugin = new fixtures.plugin('geoip');
-    this.plugin.load_geoip_ini();
-    this.plugin.load_geoip_lite();
-    done();
+        done();
+      }, this.connection)
+    })
   })
 
-  it('no IP fails', function (done) {
-    if (!this.plugin.geoip) {
-      this.plugin.logerror("geoip-lite not loaded!");
-      return done();
-    }
-    assert.ok(!this.plugin.get_geoip_lite());
-    done();
-  })
-  it('ipv4 public passes', function (done) {
-    if (!this.plugin.geoip) {
-      this.plugin.logerror("geoip-lite not loaded!");
-      return done();
-    }
-    assert.ok(this.plugin.get_geoip_lite('192.48.85.146'));
-    done();
-  })
-  it('ipv4 private fails', function (done) {
-    if (!this.plugin.geoip) {
-      this.plugin.logerror("geoip-lite not loaded!");
-      return done();
-    }
-    assert.ok(!this.plugin.get_geoip_lite('192.168.85.146'));
-    done();
-  })
-})
+  describe('calculate_distance', function () {
+    // ServedBy ll: [ 47.6738, -122.3419 ],
+    // WMISD  [ 38, -97 ]
 
-describe('calculate_distance', function () {
+    it('seattle to michigan', function (done) {
 
-  beforeEach(_set_up);
+      this.plugin.cfg.main.calc_distance=true;
+      this.plugin.local_ip='192.48.85.146';
+      this.connection.remote.ip='199.176.179.3';
+      delete this.plugin.local_geoip;
+      this.plugin.calculate_distance(this.connection, [38, -97], (err, d) => {
+        assert.ok(d);
+        done();
+      })
+    })
 
-  it('seattle to michigan', function (done) {
-    this.plugin.register();
-    if (!this.plugin.db_loaded) return done();
+    it('congo to china', function (done) {
 
-    this.plugin.cfg.main.calc_distance=true;
-    this.plugin.local.ip='192.48.85.146';
-    this.connection.remote.ip='199.176.179.3';
-    this.plugin.calculate_distance(this.connection, [38, -97], (err, d) => {
-      assert.ok(d);
-      done();
-    });
+      this.plugin.cfg.main.calc_distance=true;
+      this.plugin.local_ip='41.78.192.1';
+      this.connection.remote.ip='60.168.181.159';
+      delete this.plugin.local_geoip;
+      this.plugin.calculate_distance(
+        this.connection, [38, -97], (err, d) => {
+          if (err) console.error(err);
+          assert.ok(d > 10000);
+          done();
+        });
+    })
   })
 })
 
 describe('haversine', function () {
-  beforeEach(_set_up);
+
+  beforeEach(function (done) {
+    this.plugin = new fixtures.plugin('geoip');
+    done()
+  })
 
   it('WA to MI is 2000-2500km', function (done) {
     const r = this.plugin.haversine(47.673, -122.3419, 38, -97);
-    assert.equal(true, (r > 2000));
-    assert.equal(true, (r < 2500));
+    assert.equal((r > 2000), true, r);
+    assert.equal((r < 2500), true, r);
+    done();
+  })
+
+  it('DRC to China is 7,000-15,000km', function (done) {
+    const r = this.plugin.haversine(0, 25, 32, 117);
+    assert.equal((r > 10000), true, r);
+    assert.equal((r < 15000), true, r);
     done();
   })
 })
