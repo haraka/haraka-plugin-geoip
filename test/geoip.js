@@ -27,10 +27,8 @@ describe('register', function () {
   }
 
   if (plugin_name === 'geoip-lite') {
-    it('geoip-lite module loads if installed', function (done) {
-      if (this.plugin.load_geoip_lite()) {
-        assert.ok(this.geoip);
-      }
+    it('geoip-lite module loads', function (done) {
+      assert.ok(this.plugin.geoip);
       done();
     })
   }
@@ -86,11 +84,11 @@ describe('database lookups', function () {
     }
   })
 
-  describe('lookup_maxmind', function () {
+  describe('lookup', function () {
     this.timeout(4000)
     it('seattle: lat + long', function (done) {  // fails with Lite
       this.connection.remote.ip='192.48.85.146';
-      this.plugin.lookup_maxmind(() => {
+      this.plugin.lookup(() => {
         const r = this.connection.results.get('geoip');
         assert.ok(r);
         assert.equal('US', r.country);
@@ -101,7 +99,7 @@ describe('database lookups', function () {
 
     it('michigan: lat + long', function (done) {
       this.connection.remote.ip='199.176.179.3';
-      this.plugin.lookup_maxmind((rc) => {
+      this.plugin.lookup((rc) => {
         const r = this.connection.results.get('geoip');
         assert.ok(r);
         assert.equal('US', r.country);
