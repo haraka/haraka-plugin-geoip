@@ -1,12 +1,21 @@
+
+## 1.0.15 - 2020-09-03
+
+- revert plugin rename from #44
+- update tests to make it easier to sync
+
+
 ## 1.0.14 - 2020-09-01
 
-- fix connection result access since plugin was renamed from 'geoip' > 'haraka-plugin-geoip'
+- fix connection result access since plugin rename #44
 - bump maxmind version to 4.1
 - wrap city & country lookups in a try
+
 
 ## 1.0.13 - 2020-01-28
 
 - properly continue loop when one of database file missing
+
 
 ## 1.0.12 - 2019-11-10
 
