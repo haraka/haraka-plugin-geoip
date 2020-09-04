@@ -82,7 +82,7 @@ exports.load_dbs = async function () {
   plugin.dbsLoaded = 0;
   const dbdir = plugin.cfg.main.dbdir || '/usr/local/share/GeoIP/';
 
-  for (const db of ['city', 'country']) {
+  for (const db of ['city', 'country', 'ASN']) {
     const dbPath = path.join(dbdir, `GeoLite2-${ucFirst(db)}.mmdb`);
     if (!fs.existsSync(dbPath)) {
       plugin.logdebug(`missing DB ${dbPath}`)
@@ -267,10 +267,12 @@ exports.get_geoip_maxmind = function (ip) {
   if (!plugin.dbsLoaded) return;
 
   if (plugin.cityLookup) {
+    console.log('using city lookup')
     try { return plugin.cityLookup.get(ip); }
     catch (ignore) {}
   }
   if (plugin.countryLookup) {
+    console.log('using country lookup')
     try { return plugin.countryLookup.get(ip); }
     catch (ignore) {}
   }

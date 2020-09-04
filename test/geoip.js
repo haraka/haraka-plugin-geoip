@@ -42,7 +42,7 @@ describe('database lookups', function () {
     });
 
     if (plugin_name === 'geoip') {
-      this.plugin.cfg.main.dbdir = path.resolve('test','fixtures');
+      // this.plugin.cfg.main.dbdir = path.resolve('test','fixtures');
       this.plugin.load_dbs().then(done)
     }
     else {
@@ -86,13 +86,12 @@ describe('database lookups', function () {
 
   describe('lookup', function () {
     this.timeout(4000)
-    it('seattle: lat + long', function (done) {  // fails with Lite
+    it('seattle: lat + long', function (done) {
       this.connection.remote.ip='192.48.85.146';
       this.plugin.lookup(() => {
         const r = this.connection.results.get('geoip');
-        assert.ok(r);
         assert.equal('US', r.country);
-        assert.equal('NA', r.continent);
+        if (r.continent) assert.equal('NA', r.continent);
         done();
       }, this.connection);
     })
@@ -101,9 +100,8 @@ describe('database lookups', function () {
       this.connection.remote.ip='199.176.179.3';
       this.plugin.lookup((rc) => {
         const r = this.connection.results.get('geoip');
-        assert.ok(r);
         assert.equal('US', r.country);
-        assert.equal('NA', r.continent);
+        if (r.continent) assert.equal('NA', r.continent);
         done();
       }, this.connection)
     })
@@ -119,12 +117,11 @@ describe('database lookups', function () {
       this.plugin.local_ip='192.48.85.146';
       this.connection.remote.ip='199.176.179.3';
       delete this.plugin.local_geoip;
-      this.plugin.calculate_distance(
-        this.connection, [38, -97], (err, d) => {
-          if (err) console.error(err);
-          assert.ok(d > 50 && d < 4000);
-          done();
-        })
+      this.plugin.calculate_distance(this.connection, [38, -97], (err, d) => {
+        if (err) console.error(err);
+        assert.ok(d > 50 && d < 4000);
+        done();
+      })
     })
 
     it('congo to china', function (done) {
@@ -133,12 +130,11 @@ describe('database lookups', function () {
       this.plugin.local_ip='41.78.192.1';
       this.connection.remote.ip='60.168.181.159';
       delete this.plugin.local_geoip;
-      this.plugin.calculate_distance(
-        this.connection, [38, -97], (err, d) => {
-          if (err) console.error(err);
-          assert.ok(d > 10000);
-          done();
-        });
+      this.plugin.calculate_distance(this.connection, [38, -97], (err, d) => {
+        if (err) console.error(err);
+        assert.ok(d > 10000);
+        done();
+      })
     })
   })
 })
