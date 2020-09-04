@@ -8,3 +8,13 @@ engines:
 ratings:
    paths:
    - "**.js"
+
+checks:
+  method-lines:
+    config:
+      threshold: 30
+  method-complexity:
+    config:
+      threshold: 10
+  return-statements:
+    enabled: false
