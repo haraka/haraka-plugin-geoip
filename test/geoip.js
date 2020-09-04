@@ -86,13 +86,12 @@ describe('database lookups', function () {
   })
 
   describe('lookup', function () {
+    this.timeout(4000)
 
     it('seattle: lat + long', function (done) {
       this.connection.remote.ip='192.48.85.146';
       this.plugin.lookup((rc) => {
         const r = this.connection.results.get('geoip');
-        // assert.equal(47.6738, r.ll[0]);  // invalid loc with Lite
-        // assert.equal(-122.3419, r.ll[1]);
         assert.equal('US', r.country);
         if (r.continent) assert.equal('NA', r.continent);
         done();
@@ -103,7 +102,6 @@ describe('database lookups', function () {
       this.connection.remote.ip='199.176.179.3';
       this.plugin.lookup((rc) => {
         const r = this.connection.results.get('geoip');
-        // console.log(r)
         assert.equal(44.2504, r.ll[0]);
         assert.equal(-85.43,  r.ll[1]);
         assert.equal('US', r.country);
@@ -124,7 +122,8 @@ describe('database lookups', function () {
       this.connection.remote.ip='199.176.179.3';
       delete this.plugin.local_geoip;
       this.plugin.calculate_distance(this.connection, [38, -97], (err, d) => {
-        assert.ok(d);
+        if (err) console.error(err);
+        assert.ok(d > 50 && d < 4000);
         done();
       })
     })
