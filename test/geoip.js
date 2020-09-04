@@ -42,7 +42,7 @@ describe('database lookups', function () {
     });
 
     if (plugin_name === 'geoip') {
-      // this.plugin.cfg.main.dbdir = path.resolve('test','fixtures');
+      this.plugin.cfg.main.dbdir = path.resolve('test','fixtures');
       this.plugin.load_dbs().then(done)
     }
     else {
