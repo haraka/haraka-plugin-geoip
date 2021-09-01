@@ -401,8 +401,8 @@ exports.received_headers = function (connection) {
 }
 
 function get_country (gi) {
-  if (plugin_name === 'geoip-lite') return get_country_lite(gi)
   if (!gi) return '';
+  if (plugin_name === 'geoip-lite') return get_country_lite(gi)
   if (!gi.country) return ''
   if (!gi.country.iso_code) return '';
   return gi.country.iso_code;
