@@ -2,12 +2,10 @@ env:
   node: true
   es6: true
   mocha: true
+  es2020: true
 
 plugins:
   - haraka
-
-parserOptions:
-  ecmaVersion: 2017
 
 extends:
   - eslint:recommended

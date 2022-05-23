@@ -2,6 +2,9 @@ name: Plugin Tests - Windows
 
 on: [ push, pull_request ]
 
+env:
+  CI: true
+
 jobs:
 
   ci-test-win:
@@ -11,24 +14,20 @@ jobs:
     strategy:
       matrix:
         os: [ windows-latest ]
-        node-version: [ 12.x ]
+        node-version: [ 16 ]
       fail-fast: false
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
       name: Checkout Plugin
       with:
         fetch-depth: 1
 
-    - uses: actions/setup-node@v1
+    - uses: actions/setup-node@v3
       name: Use Node.js ${{ matrix.node-version }}
       with:
         node-version: ${{ matrix.node-version }}
 
-    - name: npm install and test
-      run: |
-        npm install
-        npm run test
+    - run: npm install
 
-      env:
-        CI: true
+    - run: npm run test
