@@ -75,21 +75,19 @@ exports.load_geoip_ini = function () {
 }
 
 exports.load_dbs = async function () {
-  const plugin = this;
+  if (!this.maxmind) return;
 
-  if (!plugin.maxmind) return;
-
-  plugin.dbsLoaded = 0;
-  const dbdir = plugin.cfg.main.dbdir || '/usr/local/share/GeoIP/';
+  this.dbsLoaded = 0;
+  const dbdir = this.cfg.main.dbdir || '/usr/local/share/GeoIP/';
 
   for (const db of ['city', 'country', 'ASN']) {
     const dbPath = path.join(dbdir, `GeoLite2-${ucFirst(db)}.mmdb`);
     if (!fs.existsSync(dbPath)) {
-      plugin.logdebug(`missing DB ${dbPath}`)
+      this.logdebug(`missing DB ${dbPath}`)
       continue;
     }
 
-    plugin[`${db}Lookup`] = await plugin.maxmind.open(dbPath, {
+    this[`${db}Lookup`] = await this.maxmind.open(dbPath, {
       // this causes tests to hang, which is why mocha runs with --exit
       watchForUpdates: true,
       cache: {
@@ -97,15 +95,14 @@ exports.load_dbs = async function () {
         maxAge: 1000 * 60 * 60 // life time in milliseconds
       }
     });
-    plugin.logdebug(`loaded maxmind db ${dbPath}`);
-    plugin.dbsLoaded++;
+    this.logdebug(`loaded maxmind db ${dbPath}`);
+    this.dbsLoaded++;
   }
 
-  plugin.logdebug(`loaded maxmind with ${plugin.dbsLoaded} DBs`);
+  this.logdebug(`loaded maxmind with ${this.dbsLoaded} DBs`);
 }
 
 exports.get_locales = function (loc) {
-  const plugin = this;
 
   const show = [];
   const agg_res = { emit: true };
@@ -122,12 +119,12 @@ exports.get_locales = function (loc) {
 
   if (loc.subdivisions && loc.subdivisions[0].iso_code) {
     agg_res.region = loc.subdivisions[0].iso_code;
-    if (plugin.cfg.show.region) show.push(loc.subdivisions[0].iso_code);
+    if (this.cfg.show.region) show.push(loc.subdivisions[0].iso_code);
   }
 
   if (loc.city && loc.city.names) {
     agg_res.city = loc.city.names.en;
-    if (plugin.cfg.show.city) show.push(loc.city.names.en);
+    if (this.cfg.show.city) show.push(loc.city.names.en);
   }
 
   if (loc.location && isFinite(loc.location.latitude)) {
@@ -144,7 +141,6 @@ exports.lookup = function (next, connection) {
 }
 
 exports.lookup_geoip_lite = function (next, connection) {
-  const plugin = this;
 
   // geoip results look like this:
   // range: [ 3479299040, 3479299071 ],
@@ -153,67 +149,65 @@ exports.lookup_geoip_lite = function (next, connection) {
   //    city: 'San Francisco',
   //    ll: [37.7484, -122.4156]
 
-  if (!plugin.geoip) {
-    connection.logerror(plugin, 'geoip-lite not loaded');
+  if (!this.geoip) {
+    connection.logerror(this, 'geoip-lite not loaded');
     return next();
   }
 
-  const r = plugin.get_geoip_lite(connection.remote.ip);
+  const r = this.get_geoip_lite(connection.remote.ip);
   if (!r) return next();
 
-  connection.results.add(plugin, r);
+  connection.results.add(this, r);
 
   const show = [];
   if (r.country  && r.country !== '--') show.push(r.country);
-  if (r.region   && plugin.cfg.main.show_region) show.push(r.region);
-  if (r.city     && plugin.cfg.main.show_city  ) show.push(r.city);
+  if (r.region   && this.cfg.main.show_region) show.push(r.region);
+  if (r.city     && this.cfg.main.show_city  ) show.push(r.city);
 
   if (show.length === 0) return next();
 
-  if (!plugin.cfg.main.calc_distance) {
-    connection.results.add(plugin, {human: show.join(', '), emit:true});
+  if (!this.cfg.main.calc_distance) {
+    connection.results.add(this, {human: show.join(', '), emit:true});
     return next();
   }
 
-  plugin.calculate_distance(connection, r.ll, function (err, distance) {
+  this.calculate_distance(connection, r.ll, (err, distance) => {
     if (distance) show.push(`${distance}km`);
-    connection.results.add(plugin, {human: show.join(', '), emit:true});
+    connection.results.add(this, {human: show.join(', '), emit:true});
     next();
   })
 }
 
 exports.lookup_maxmind = function (next, connection) {
-  const plugin = this;
 
-  const loc = plugin.get_geoip_maxmind(connection.remote.ip);
+  const loc = this.get_geoip_maxmind(connection.remote.ip);
   if (!loc) return next();
 
-  const [show, agg_res] = plugin.get_locales(loc);
+  const [show, agg_res] = this.get_locales(loc);
   if (show.length === 0) return next();
 
   agg_res.human = show.join(', ');
 
-  if (!plugin.cfg.main.calc_distance || !loc.location) {
-    connection.results.add(plugin, agg_res);
+  if (!this.cfg.main.calc_distance || !loc.location) {
+    connection.results.add(this, agg_res);
     return next();
   }
 
-  plugin.calculate_distance(connection, agg_res.ll, (err, distance) => {
+  this.calculate_distance(connection, agg_res.ll, (err, distance) => {
     if (err) {
-      connection.results.add(plugin, {err});
+      connection.results.add(this, {err});
     }
     if (distance) {
       agg_res.distance = distance;
       show.push(`${distance}km`);
       agg_res.human = show.join(', ');
     }
-    connection.results.add(plugin, agg_res);
+    connection.results.add(this, agg_res);
     next();
   })
 }
 
 exports.get_geoip = function (ip) {
-  const plugin = this;
 
   switch (true) {
     case (!ip):
@@ -223,8 +217,8 @@ exports.get_geoip = function (ip) {
   }
 
   let res;
-  if (plugin_name === 'geoip')      res = plugin.get_geoip_maxmind(ip);
-  if (plugin_name === 'geoip-lite') res = plugin.get_geoip_lite(ip);
+  if (plugin_name === 'geoip')      res = this.get_geoip_maxmind(ip);
+  if (plugin_name === 'geoip-lite') res = this.get_geoip_lite(ip);
   if (!res) return;
 
   // console.log(res);
@@ -261,23 +255,21 @@ exports.get_geoip_lite = function (ip) {
 }
 
 exports.get_geoip_maxmind = function (ip) {
-  const plugin = this;
 
-  if (!plugin.maxmind) return;
-  if (!plugin.dbsLoaded) return;
+  if (!this.maxmind) return;
+  if (!this.dbsLoaded) return;
 
-  if (plugin.cityLookup) {
-    try { return plugin.cityLookup.get(ip); }
+  if (this.cityLookup) {
+    try { return this.cityLookup.get(ip); }
     catch (ignore) {}
   }
-  if (plugin.countryLookup) {
-    try { return plugin.countryLookup.get(ip); }
+  if (this.countryLookup) {
+    try { return this.countryLookup.get(ip); }
     catch (ignore) {}
   }
 }
 
 exports.add_headers = function (next, connection) {
-  const plugin = this;
   const txn = connection.transaction;
   if (!txn) return;
 
@@ -293,10 +285,10 @@ exports.add_headers = function (next, connection) {
 
   const received = [];
 
-  const rh = plugin.received_headers(connection);
+  const rh = this.received_headers(connection);
   if (rh && rh.length) received.push(rh);
 
-  const oh = plugin.originating_headers(connection);
+  const oh = this.originating_headers(connection);
   if (oh) received.push(oh);
 
   // Add any received results to a trace header
@@ -307,22 +299,21 @@ exports.add_headers = function (next, connection) {
 }
 
 exports.get_local_geo = function (ip, connection) {
-  const plugin = this;
-  if (plugin.local_geoip) return;  // cached
+  if (this.local_geoip) return;  // cached
 
-  if (!plugin.local_ip) plugin.local_ip = ip;
-  if (!plugin.local_ip) plugin.local_ip = plugin.cfg.main.public_ip;
-  if (!plugin.local_ip) {
-    connection.logerror(plugin, "can't calculate distance, set public_ip in smtp.ini");
+  if (!this.local_ip) this.local_ip = ip;
+  if (!this.local_ip) this.local_ip = this.cfg.main.public_ip;
+  if (!this.local_ip) {
+    connection.logerror(this, "can't calculate distance, set public_ip in smtp.ini");
     return;
   }
 
-  if (!plugin.local_geoip) {
-    plugin.local_geoip = plugin.get_geoip(plugin.local_ip);
+  if (!this.local_geoip) {
+    this.local_geoip = this.get_geoip(this.local_ip);
   }
 
-  if (!plugin.local_geoip) {
-    connection.logerror(plugin, "no GeoIP results for local_ip!");
+  if (!this.local_geoip) {
+    connection.logerror(this, "no GeoIP results for local_ip!");
   }
 }
 
@@ -374,7 +365,6 @@ exports.haversine = function (lat1, lon1, lat2, lon2) {
 }
 
 exports.received_headers = function (connection) {
-  const plugin = this;
 
   const received = connection.transaction.header.get_all('received');
   if (!received.length) return;
@@ -388,14 +378,14 @@ exports.received_headers = function (connection) {
     if (!match) continue;
     if (net_utils.is_private_ip(match[1])) continue;  // exclude private IP
 
-    const gi = plugin.get_geoip(match[1]);
+    const gi = this.get_geoip(match[1]);
     const country = get_country(gi);
     let logmsg = `received=${match[1]}`;
     if (country) {
       logmsg += ` country=${country}`;
       results.push(`${match[1]}:${country}`);
     }
-    connection.loginfo(plugin, logmsg);
+    connection.loginfo(this, logmsg);
   }
   return results;
 }
@@ -415,7 +405,6 @@ function get_country_lite (gi) {
 }
 
 exports.originating_headers = function (connection) {
-  const plugin = this;
   const txn = connection.transaction;
 
   // Try and parse any originating IP headers
@@ -431,9 +420,9 @@ exports.originating_headers = function (connection) {
   const found_ip = match[1];
   if (net_utils.is_private_ip(found_ip)) return;
 
-  const gi = plugin.get_geoip(found_ip);
+  const gi = this.get_geoip(found_ip);
   if (!gi) return;
 
-  connection.loginfo(plugin, `originating=${found_ip} ${gi.human}`);
+  connection.loginfo(this, `originating=${found_ip} ${gi.human}`);
   return `${found_ip}:${get_country(gi)}`;
 }

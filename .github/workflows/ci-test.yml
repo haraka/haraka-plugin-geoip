@@ -2,6 +2,9 @@ name: Plugin Tests
 
 on: [ push, pull_request ]
 
+env:
+  CI: true
+
 jobs:
 
   ci-test:
@@ -11,31 +14,20 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        node-version: [10.x, 12.x, 14.x]
+        node-version: [ 14, 16, 18 ]
       fail-fast: false
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
       name: Checkout Plugin
       with:
         fetch-depth: 1
 
-    - uses: actions/setup-node@v1
+    - uses: actions/setup-node@v3
       name: Use Node.js ${{ matrix.node-version }}
       with:
         node-version: ${{ matrix.node-version }}
 
-    - name: npm install
-      run: npm install
+    - run: npm install
 
-    - name: Run test suite
-      run: npm run test
-
-      env:
-        CI: true
-
-    # services:
-    #   redis:
-    #     image: redis
-    #     ports:
-    #       - 6379/tcp
+    - run: npm run test

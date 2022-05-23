@@ -1,4 +1,11 @@
 
+
+## 1.0.16 - 2022-05-22
+
+- only use 'plugin = this' where needed
+- dep(maxmind): 4.1 -> 4.3
+
+
 ## 1.0.15 - 2020-09-03
 
 - revert plugin rename from #44
