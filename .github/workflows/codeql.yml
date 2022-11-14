@@ -2,9 +2,9 @@ name: "CodeQL"
 
 on:
   push:
-    branches: [ master ]
+    branches: [ "master", "geoip-lite" ]
   pull_request:
-    branches: [ master ]
+    branches: [ "master", "geoip-lite" ]
   schedule:
     - cron: '18 7 * * 4'
 
