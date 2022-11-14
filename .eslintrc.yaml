@@ -16,6 +16,7 @@ root: true
 rules:
   indent: [ error, 2, { SwitchCase: 1 } ]
   no-empty: [ error, { allowEmptyCatch: true }]
+  semi: [ error, never ]
 
 globals:
   OK: true
