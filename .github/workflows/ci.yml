@@ -1,0 +1,23 @@
+name: CI
+
+on: [ push ]
+
+env:
+  CI: true
+
+jobs:
+
+  lint:
+    uses: haraka/.github/.github/workflows/lint.yml@master
+
+  # coverage:
+  #   uses: haraka/.github/.github/workflows/coverage.yml@master
+  #   secrets: inherit
+
+  test:
+    needs: [ lint ]
+    uses: haraka/.github/.github/workflows/ubuntu.yml@master
+
+  windows:
+    needs: [ lint ]
+    uses: haraka/.github/.github/workflows/windows.yml@master
