@@ -372,20 +372,19 @@ exports.received_headers = function (connection) {
   const ipany_re = net_utils.get_ipany_re('[\\[\\(](?:IPv6:)?', '[\\]\\)]')
 
   // Try and parse each received header
-  for (let i=0; i < received.length; i++) {
-    const match = ipany_re.exec(received[i])
-    ipany_re.lastIndex = 0
-    if (!match) continue
-    if (net_utils.is_private_ip(match[1])) continue  // exclude private IP
+  for (const header of received) {
+    for (const match of [...header.matchAll(ipany_re)]) {
+      if (net_utils.is_private_ip(match[1])) continue  // exclude private IP
 
-    const gi = this.get_geoip(match[1])
-    const country = get_country(gi)
-    let logmsg = `received=${match[1]}`
-    if (country) {
-      logmsg += ` country=${country}`
-      results.push(`${match[1]}:${country}`)
+      const gi = this.get_geoip(match[1])
+      const country = get_country(gi)
+      let logmsg = `received=${match[1]}`
+      if (country) {
+        logmsg += ` country=${country}`
+        results.push(`${match[1]}:${country}`)
+      }
+      connection.loginfo(this, logmsg)
     }
-    connection.loginfo(this, logmsg)
   }
   return results
 }
