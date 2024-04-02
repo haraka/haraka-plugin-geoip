@@ -8,61 +8,52 @@ const fixtures     = require('haraka-test-fixtures')
 const plugin_name  = 'geoip'
 
 describe('register', function () {
-  beforeEach(function (done) {
+  beforeEach(async function () {
     this.plugin = new fixtures.plugin('geoip')
-    this.plugin.register().then(done)
+    await this.plugin.register()
   })
 
-  it('config loaded', function (done) {
+  it('config loaded', function () {
     assert.ok(this.plugin.cfg)
     assert.ok(this.plugin.cfg.main)
-    done()
   })
 
   if (plugin_name === 'geoip') {
-    it('maxmind module loaded', function (done) {
+    it('maxmind module loaded', function () {
       assert.ok(this.plugin.maxmind)
-      done()
     })
   }
 
   if (plugin_name === 'geoip-lite') {
-    it('geoip-lite module loads', function (done) {
+    it('geoip-lite module loads', function () {
       assert.ok(this.plugin.geoip)
-      done()
     })
   }
 })
 
 describe('database lookups', function () {
-  beforeEach(function (done) {
+  beforeEach(async function () {
     this.plugin = new fixtures.plugin('geoip')
-    this.plugin.register().then(() => {
-      this.connection = fixtures.connection.createConnection()
-    })
+    await this.plugin.register()
+    this.connection = fixtures.connection.createConnection()
 
     if (plugin_name === 'geoip') {
       this.plugin.cfg.main.dbdir = path.resolve('test','fixtures')
-      this.plugin.load_dbs().then(done)
-    }
-    else {
-      done()
+      await this.plugin.load_dbs()
     }
   })
 
   describe('get_geoip', function () {
 
-    it('no IP fails', function (done) {
+    it('no IP fails', function () {
       assert.ok(!this.plugin.get_geoip())
-      done()
     })
 
-    it('ipv4 private fails', function (done) {
+    it('ipv4 private fails', function () {
       assert.ok(!this.plugin.get_geoip('192.168.2.3'))
-      done()
     })
 
-    it('ipv4 public passes', function (done) {
+    it('ipv4 public passes', function () {
       const r = this.plugin.get_geoip('192.48.85.146')
       if (plugin_name === 'geoip') {
         assert.equal(r.continent.code,   'NA')
@@ -71,15 +62,13 @@ describe('database lookups', function () {
       if (plugin_name === 'geoip-lite') {
         assert.equal(r.country, 'US')
       }
-      done()
     })
 
     if (plugin_name === 'geoip') {
-      it('ipv6 public passes', function (done) {
+      it('ipv6 public passes', function () {
         const r = this.plugin.get_geoip('2607:f060:b008:feed::6')
         assert.equal(r.continent.code,   'NA')
         assert.equal(r.country.iso_code, 'US')
-        done()
       })
     }
   })
@@ -158,5 +147,26 @@ describe('haversine', function () {
     assert.equal((r > 10000), true, r)
     assert.equal((r < 15000), true, r)
     done()
+  })
+})
+
+describe('received_headers', function () {
+  beforeEach(async function () {
+    this.plugin = new fixtures.plugin('geoip')
+    await this.plugin.register()
+    this.connection = fixtures.connection.createConnection()
+    this.connection.transaction = fixtures.transaction.createTransaction()
+
+    if (plugin_name === 'geoip') {
+      this.plugin.cfg.main.dbdir = path.resolve('test','fixtures')
+      await this.plugin.load_dbs()
+    }
+  })
+
+  it('generates results for each received header', function () {
+    this.connection.transaction.header.add_end('Received', 'from [199.176.179.3]')
+    this.connection.transaction.header.add_end('Received', 'from [192.48.85.146]')
+    const results = this.plugin.received_headers(this.connection)
+    assert.equal(results.length, 2)
   })
 })
