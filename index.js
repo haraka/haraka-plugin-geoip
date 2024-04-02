@@ -88,8 +88,8 @@ exports.load_dbs = async function () {
     }
 
     this[`${db}Lookup`] = await this.maxmind.open(dbPath, {
-      // this causes tests to hang, which is why mocha runs with --exit
-      watchForUpdates: true,
+      // watchForUpdates causes tests to hang unless mocha runs with --exit
+      watchForUpdates: false,
       cache: {
         max: 1000, // max items in cache
         maxAge: 1000 * 60 * 60 // life time in milliseconds

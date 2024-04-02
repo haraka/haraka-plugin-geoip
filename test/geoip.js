@@ -13,23 +13,20 @@ describe('register', function () {
     this.plugin.register().then(done)
   })
 
-  it('config loaded', function (done) {
+  it('config loaded', function () {
     assert.ok(this.plugin.cfg)
     assert.ok(this.plugin.cfg.main)
-    done()
   })
 
   if (plugin_name === 'geoip') {
-    it('maxmind module loaded', function (done) {
+    it('maxmind module loaded', function () {
       assert.ok(this.plugin.maxmind)
-      done()
     })
   }
 
   if (plugin_name === 'geoip-lite') {
-    it('geoip-lite module loads', function (done) {
+    it('geoip-lite module loads', function () {
       assert.ok(this.plugin.geoip)
-      done()
     })
   }
 })
@@ -158,5 +155,21 @@ describe('haversine', function () {
     assert.equal((r > 10000), true, r)
     assert.equal((r < 15000), true, r)
     done()
+  })
+})
+
+describe('received_headers', function () {
+  beforeEach(async function () {
+    this.plugin = new fixtures.plugin('geoip')
+    await this.plugin.register()
+    this.connection = fixtures.connection.createConnection()
+    this.connection.transaction = fixtures.transaction.createTransaction()
+  })
+
+  it('generates results for each received header', function () {
+    this.connection.transaction.header.add_end('Received', 'from [199.176.179.3]')
+    this.connection.transaction.header.add_end('Received', 'from [192.48.85.146]')
+    const results = this.plugin.received_headers(this.connection)
+    assert.equal(results.length, 2)
   })
 })
