@@ -160,3 +160,24 @@ describe('haversine', function () {
     done()
   })
 })
+
+describe('received_headers', function () {
+
+    beforeEach(function (done) {
+        this.plugin = new fixtures.plugin('geoip')
+        this.plugin.register().then(() => {
+            this.connection = fixtures.connection.createConnection()
+            this.connection.transaction = fixtures.transaction.createTransaction()
+            done()
+        })
+    })
+
+    it('get 2 headers', function (done) {
+        this.connection.transaction.header.add_end('Received', 'from [199.176.179.3]');
+        this.connection.transaction.header.add_end('Received', 'from [192.48.85.146]');
+        const results = this.plugin.received_headers(this.connection);
+        assert.equal(2, results.length);
+        done()        
+    })
+})
+
