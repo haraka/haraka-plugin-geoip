@@ -366,7 +366,7 @@ exports.haversine = function (lat1, lon1, lat2, lon2) {
 exports.received_headers = function (connection) {
 
   const received = connection.transaction.header.get_all('received')
-  if (!received.length) return
+  if (!received.length) return []
 
   const results = []
   const ipany_re = net_utils.get_ipany_re('[\\[\\(](?:IPv6:)?', '[\\]\\)]')
