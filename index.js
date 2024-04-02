@@ -374,6 +374,7 @@ exports.received_headers = function (connection) {
   // Try and parse each received header
   for (let i=0; i < received.length; i++) {
     const match = ipany_re.exec(received[i])
+    ipany_re.lastIndex = 0
     if (!match) continue
     if (net_utils.is_private_ip(match[1])) continue  // exclude private IP
 
