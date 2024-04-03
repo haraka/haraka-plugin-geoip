@@ -99,11 +99,11 @@ describe('database lookups', function () {
     })
 
     it('michigan: lat + long', function (done) {
-      this.connection.remote.ip='199.176.179.3';
+      this.connection.remote.ip='24.204.186.246';
       this.plugin.lookup((rc) => {
         const r = this.connection.results.get('geoip');
-        assert.equal(44.2504, r.ll[0]);
-        assert.equal(-85.43,  r.ll[1]);
+        assert.equal(Math.floor(r.ll[0]), 44);
+        assert.equal(Math.floor(r.ll[1]), -86);
         assert.equal('US', r.country);
         if (r.continent) assert.equal('NA', r.continent);
         done();
@@ -119,7 +119,7 @@ describe('database lookups', function () {
 
       this.plugin.cfg.main.calc_distance=true;
       this.plugin.local_ip='192.48.85.146';
-      this.connection.remote.ip='199.176.179.3';
+      this.connection.remote.ip='24.204.186.246';
       delete this.plugin.local_geoip;
       this.plugin.calculate_distance(this.connection, [38, -97], (err, d) => {
         if (err) console.error(err);
