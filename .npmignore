@@ -56,3 +56,4 @@ codecov.yml
 .travis.yml
 .eslintrc.yaml
 .eslintrc.json
+test
