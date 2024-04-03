@@ -1,0 +1,16 @@
+name: publish
+
+on:
+  push:
+    branches:
+      - geoip-lite
+    paths:
+      - package.json
+
+env:
+  CI: true
+
+jobs:
+  publish:
+    uses: haraka/.github/.github/workflows/publish.yml@master
+    secrets: inherit

@@ -1,0 +1,13 @@
+name: "CodeQL"
+
+on:
+  push:
+    branches: [ "master", "geoip-lite" ]
+  pull_request:
+    branches: [ "master", "geoip-lite" ]
+  schedule:
+    - cron: '18 7 * * 4'
+
+jobs:
+  codeql:
+    uses: haraka/.github/.github/workflows/codeql.yml@master

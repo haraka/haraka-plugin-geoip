@@ -1,5 +1,4 @@
 [![Build Status][ci-img]][ci-url]
-[![Windows Build status][ci-win-img]][ci-win-url]
 [![Code Climate][clim-img]][clim-url]
 [![NPM][npm-img]][npm-url]
 
@@ -115,10 +114,8 @@ reality, it is not. Accuracy should be within 1%.
 [4]: http://www.cc.gatech.edu/~feamster/papers/snare-usenix09.pdf
 [5]: https://www.npmjs.com/package/haraka-plugin-geoip
 
-[ci-img]: https://github.com/haraka/haraka-plugin-geoip/workflows/Plugin%20Tests/badge.svg
-[ci-url]: https://github.com/haraka/haraka-plugin-geoip/actions?query=workflow%3A%22Plugin+Tests%22
-[ci-win-img]: https://github.com/haraka/haraka-plugin-geoip/workflows/Plugin%20Tests%20-%20Windows/badge.svg
-[ci-win-url]: https://github.com/haraka/haraka-plugin-geoip/actions?query=workflow%3A%22Plugin+Tests+-+Windows%22
+[ci-img]: https://github.com/haraka/haraka-plugin-geoip/actions/workflows/ci.yml/badge.svg?branch=geoip-lite
+[ci-url]: https://github.com/haraka/haraka-plugin-geoip/actions/workflows/ci.yml
 [clim-img]: https://codeclimate.com/github/haraka/haraka-plugin-geoip/badges/gpa.svg
 [clim-url]: https://codeclimate.com/github/haraka/haraka-plugin-geoip
 [npm-img]: https://nodei.co/npm/haraka-plugin-geoip-lite.png
