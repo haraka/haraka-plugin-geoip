@@ -1,4 +1,10 @@
 
+## 1.0.16 - 2024-04-03
+
+- deps: update geoip-lite versions to latest
+- test: update a test IP
+
+
 ## 1.0.15 - 2020-09-03
 
 - revert plugin rename from #44
@@ -73,3 +79,4 @@
 - aggregate results before emitting
 - README link cleanups
 
+[1.0.15]: https://github.com/haraka/haraka-plugin-geoip/releases/tag/1.0.15
