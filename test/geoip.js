@@ -130,23 +130,20 @@ describe('database lookups', function () {
 
 describe('haversine', function () {
 
-  beforeEach(function (done) {
+  beforeEach(function () {
     this.plugin = new fixtures.plugin('geoip')
-    done()
   })
 
-  it('WA to MI is 2000-2500km', function (done) {
+  it('WA to MI is 2000-2500km', function () {
     const r = this.plugin.haversine(47.673, -122.3419, 38, -97)
     assert.equal((r > 2000), true, r)
     assert.equal((r < 2500), true, r)
-    done()
   })
 
-  it('DRC to China is 7,000-15,000km', function (done) {
+  it('DRC to China is 7,000-15,000km', function () {
     const r = this.plugin.haversine(0, 25, 32, 117)
     assert.equal((r > 10000), true, r)
     assert.equal((r < 15000), true, r)
-    done()
   })
 })
 

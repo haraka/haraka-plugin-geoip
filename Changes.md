@@ -1,6 +1,17 @@
 ### Unreleased
 
 
+### [1.1.0] - 2024-04-02
+
+- index: turn off watchForUpdates
+- index: reset regex index to zero after each call to exec #58
+- deps: bump and pin versions
+- ci: add trigger to run tests on PR #60
+- test: add received_header #61
+- test: use async where possible
+- test: remove done when superfluous
+
+
 ### [1.0.17] - 2022-11-14
 
 - dep(node-maxmind): bump to 4.3.8
@@ -89,3 +100,4 @@
 - README link cleanups
 
 [1.0.17]: https://github.com/haraka/haraka-plugin-geoip/releases/tag/1.0.17
+[1.1.0]: https://github.com/haraka/haraka-plugin-geoip/releases/tag/1.1.0
