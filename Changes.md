@@ -1,4 +1,15 @@
+# Changelog
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/).
+
 ### Unreleased
+
+### [1.1.1] - 2025-01-26
+
+
+- style: automated formatting with prettier
+- dep(eslint): upgrade to v9
+- index.received_header: refactor with es6
 
 ### [1.1.0] - 2024-04-02
 
@@ -86,3 +97,5 @@
 
 [1.0.17]: https://github.com/haraka/haraka-plugin-geoip/releases/tag/1.0.17
 [1.1.0]: https://github.com/haraka/haraka-plugin-geoip/releases/tag/1.1.0
+[1.1.1]: https://github.com/haraka/haraka-plugin-geoip/releases/tag/v1.1.1
+[1.0.16]: https://github.com/haraka/haraka-plugin-geoip/releases/tag/1.0.16
