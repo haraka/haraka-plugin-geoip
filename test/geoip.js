@@ -1,86 +1,84 @@
-'use strict';
+'use strict'
 
-const assert       = require('assert')
-const path         = require('path')
+const assert = require('assert')
+const path = require('path')
 
-const fixtures     = require('haraka-test-fixtures');
+const fixtures = require('haraka-test-fixtures')
 
-const plugin_name  = 'geoip-lite';
+const plugin_name = 'geoip-lite'
 
 describe('register', function () {
   beforeEach(function (done) {
-    this.plugin = new fixtures.plugin('geoip');
+    this.plugin = new fixtures.plugin('geoip')
     this.plugin.register().then(done)
   })
 
   it('config loaded', function (done) {
-    assert.ok(this.plugin.cfg);
-    assert.ok(this.plugin.cfg.main);
-    done();
+    assert.ok(this.plugin.cfg)
+    assert.ok(this.plugin.cfg.main)
+    done()
   })
 
   if (plugin_name === 'geoip') {
     it('maxmind module loaded', function (done) {
-      assert.ok(this.plugin.maxmind);
-      done();
+      assert.ok(this.plugin.maxmind)
+      done()
     })
   }
 
   if (plugin_name === 'geoip-lite') {
     it('geoip-lite module loads', function (done) {
       this.plugin.register_geolite()
-      assert.ok(this.plugin.geoip);
-      done();
+      assert.ok(this.plugin.geoip)
+      done()
     })
   }
 })
 
 describe('database lookups', function () {
   beforeEach(function (done) {
-    this.plugin = new fixtures.plugin('geoip');
+    this.plugin = new fixtures.plugin('geoip')
     this.plugin.register().then(() => {
-      this.connection = fixtures.connection.createConnection();
-    });
+      this.connection = fixtures.connection.createConnection()
+    })
 
     if (plugin_name === 'geoip') {
-      this.plugin.cfg.main.dbdir = path.resolve('test','fixtures');
+      this.plugin.cfg.main.dbdir = path.resolve('test', 'fixtures')
       this.plugin.load_dbs().then(done)
-    }
-    else {
+    } else {
       done()
     }
   })
 
   describe('get_geoip', function () {
-
     it('no IP fails', function (done) {
-      assert.ok(!this.plugin.get_geoip());
-      done();
+      assert.ok(!this.plugin.get_geoip())
+      done()
     })
 
     it('ipv4 private fails', function (done) {
-      assert.ok(!this.plugin.get_geoip('192.168.2.3'));
-      done();
+      assert.ok(!this.plugin.get_geoip('192.168.2.3'))
+      done()
     })
 
     it('ipv4 public passes', function (done) {
-      const r = this.plugin.get_geoip('192.48.85.146');
+      const r = this.plugin.get_geoip('192.48.85.146')
       if (plugin_name === 'geoip') {
-        assert.equal(r.continent.code,   'NA');
-        assert.equal(r.country.iso_code, 'US');
+        assert.equal(r.continent.code, 'NA')
+        assert.equal(r.country.iso_code, 'US')
       }
       if (plugin_name === 'geoip-lite') {
-        assert.equal(r.country, 'US');
+        assert.equal(r.country, 'US')
       }
-      done();
+      done()
     })
 
     if (plugin_name === 'geoip') {
       it('ipv6 public passes', function (done) {
-        const r = this.plugin.get_geoip('2607:f060:b008:feed::6');
-        assert.equal(r.continent.code,   'NA');
-        assert.equal(r.country.iso_code, 'US');
-        done();
+        const r = this.plugin.get_geoip('2607:f060:b008:feed::6')
+        assert.equal(r.continent.code, 'NA')
+        assert.equal(r.country.iso_code, 'US')
+        done()
       })
     }
   })
@@ -89,24 +87,24 @@ describe('database lookups', function () {
     this.timeout(4000)
 
     it('seattle: lat + long', function (done) {
-      this.connection.remote.ip='192.48.85.146';
+      this.connection.remote.ip = '192.48.85.146'
       this.plugin.lookup((rc) => {
-        const r = this.connection.results.get('geoip');
-        assert.equal('US', r.country);
-        if (r.continent) assert.equal('NA', r.continent);
-        done();
-      }, this.connection);
+        const r = this.connection.results.get('geoip')
+        assert.equal('US', r.country)
+        if (r.continent) assert.equal('NA', r.continent)
+        done()
+      }, this.connection)
     })
 
     it('michigan: lat + long', function (done) {
-      this.connection.remote.ip='24.204.186.246';
+      this.connection.remote.ip = '24.204.186.246'
       this.plugin.lookup((rc) => {
-        const r = this.connection.results.get('geoip');
-        assert.equal(Math.floor(r.ll[0]), 44);
-        assert.equal(Math.floor(r.ll[1]), -86);
-        assert.equal('US', r.country);
-        if (r.continent) assert.equal('NA', r.continent);
-        done();
+        const r = this.connection.results.get('geoip')
+        assert.equal(Math.floor(r.ll[0]), 44)
+        assert.equal(Math.floor(r.ll[1]), -86)
+        assert.equal('US', r.country)
+        if (r.continent) assert.equal('NA', r.continent)
+        done()
       }, this.connection)
     })
   })
@@ -116,51 +114,48 @@ describe('database lookups', function () {
     // WMISD  [ 38, -97 ]
 
     it('seattle to michigan', function (done) {
-
-      this.plugin.cfg.main.calc_distance=true;
-      this.plugin.local_ip='192.48.85.146';
-      this.connection.remote.ip='24.204.186.246';
-      delete this.plugin.local_geoip;
+      this.plugin.cfg.main.calc_distance = true
+      this.plugin.local_ip = '192.48.85.146'
+      this.connection.remote.ip = '24.204.186.246'
+      delete this.plugin.local_geoip
       this.plugin.calculate_distance(this.connection, [38, -97], (err, d) => {
-        if (err) console.error(err);
-        assert.ok(d > 50 && d < 4000);
-        done();
+        if (err) console.error(err)
+        assert.ok(d > 50 && d < 4000)
+        done()
       })
     })
 
     it('congo to china', function (done) {
-
-      this.plugin.cfg.main.calc_distance=true;
-      this.plugin.local_ip='41.78.192.1';
-      this.connection.remote.ip='60.168.181.159';
-      delete this.plugin.local_geoip;
+      this.plugin.cfg.main.calc_distance = true
+      this.plugin.local_ip = '41.78.192.1'
+      this.connection.remote.ip = '60.168.181.159'
+      delete this.plugin.local_geoip
       this.plugin.calculate_distance(this.connection, [38, -97], (err, d) => {
-        if (err) console.error(err);
-        assert.ok(d > 10000);
-        done();
+        if (err) console.error(err)
+        assert.ok(d > 10000)
+        done()
       })
     })
   })
 })
 
 describe('haversine', function () {
-
   beforeEach(function (done) {
-    this.plugin = new fixtures.plugin('geoip');
+    this.plugin = new fixtures.plugin('geoip')
     done()
   })
 
   it('WA to MI is 2000-2500km', function (done) {
-    const r = this.plugin.haversine(47.673, -122.3419, 38, -97);
-    assert.equal((r > 2000), true, r);
-    assert.equal((r < 2500), true, r);
-    done();
+    const r = this.plugin.haversine(47.673, -122.3419, 38, -97)
+    assert.equal(r > 2000, true, r)
+    assert.equal(r < 2500, true, r)
+    done()
   })
 
   it('DRC to China is 7,000-15,000km', function (done) {
-    const r = this.plugin.haversine(0, 25, 32, 117);
-    assert.equal((r > 10000), true, r);
-    assert.equal((r < 15000), true, r);
-    done();
+    const r = this.plugin.haversine(0, 25, 32, 117)
+    assert.equal(r > 10000, true, r)
+    assert.equal(r < 15000, true, r)
+    done()
   })
 })

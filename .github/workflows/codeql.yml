@@ -1,10 +1,10 @@
-name: "CodeQL"
+name: 'CodeQL'
 
 on:
   push:
-    branches: [ "master", "geoip-lite" ]
+    branches: ['master', 'geoip-lite']
   pull_request:
-    branches: [ "master", "geoip-lite" ]
+    branches: ['master', 'geoip-lite']
   schedule:
     - cron: '18 7 * * 4'
 
