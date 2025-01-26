@@ -1,8 +1,7 @@
 [![Build Status][ci-img]][ci-url]
 [![Code Climate][clim-img]][clim-url]
-[![NPM][npm-img]][npm-url]
 
-# geoip
+# haraka-plugin-geoip
 
 provide geographic information about mail senders.
 
@@ -12,9 +11,9 @@ Use MaxMind's GeoIP databases to report geographic information about senders.
 
 This Haraka plugin supports two geoip modules:
 
-| Plugin | geoip module |
-| ------ | ----- |
-| [haraka-plugin-geoip][5] | [maxmind](https://github.com/runk/node-maxmind) |
+| Plugin                        | geoip module                                          |
+| ----------------------------- | ----------------------------------------------------- |
+| [haraka-plugin-geoip][5]      | [maxmind](https://github.com/runk/node-maxmind)       |
 | [haraka-plugin-geoip-lite][2] | [geoip-lite](https://github.com/bluesmoon/node-geoip) |
 
 # INSTALL (lite)
@@ -23,7 +22,6 @@ Install the npm geoip-lite module and update the DBs:
 
     npm install -g geoip-lite
     cd node_modules/geoip-lite && npm run-script updatedb license_key=YOUR_LICENSE_KEY
-
 
 # INSTALL (maxmind)
 
@@ -67,7 +65,7 @@ Performs geodesic distance calculations. Calculates the distance "as the
 crow flies" from the remote mail server.
 
 This calculation requires a 'from' IP address. This will typically be the
-public IP of your mail server. If Haraka is bound to a private IP, net\_utils
+public IP of your mail server. If Haraka is bound to a private IP, net_utils
 will attempt to determine your public IP using STUN. If that doesn't work, edit
 config/smtp.ini and set `public_ip`.
 
@@ -80,8 +78,7 @@ show city data in logs and headers. City data is less accurate than country.
 
 Set a connection result to true if the distance exceeds this many kilometers.
 
-- too\_far=4000
-
+- too_far=4000
 
 # SPAM PREDICTION WITH DISTANCE
 
@@ -93,7 +90,6 @@ Set a connection result to true if the distance exceeds this many kilometers.
 Observations in 2014-2016 suggest that geodesic distance continues to be
 highly correlated with spam.
 
-
 # LIMITATIONS
 
 The distance calculations are more concerned with being fast than accurate. The MaxMind location data is collected from whois and is of limited accuracy. MaxMind offers more accurate data for a fee.
@@ -101,22 +97,17 @@ The distance calculations are more concerned with being fast than accurate. The 
 For distance calculations, the earth is considered a perfect sphere. In
 reality, it is not. Accuracy should be within 1%.
 
-
 # SEE ALSO
 
 - [MaxMind](http://www.maxmind.com/)
 - [Databases](http://geolite.maxmind.com/download/geoip/database)
-
 
 [1]: https://github.com/msimerson/maxmind-geolite-mirror
 [2]: https://www.npmjs.com/package/haraka-plugin-geoip-lite
 [3]: https://github.com/haraka/haraka-results
 [4]: http://www.cc.gatech.edu/~feamster/papers/snare-usenix09.pdf
 [5]: https://www.npmjs.com/package/haraka-plugin-geoip
-
 [ci-img]: https://github.com/haraka/haraka-plugin-geoip/actions/workflows/ci.yml/badge.svg
 [ci-url]: https://github.com/haraka/haraka-plugin-geoip/actions/workflows/ci.yml
 [clim-img]: https://codeclimate.com/github/haraka/haraka-plugin-geoip/badges/gpa.svg
 [clim-url]: https://codeclimate.com/github/haraka/haraka-plugin-geoip
-[npm-img]: https://nodei.co/npm/haraka-plugin-geoip.png
-[npm-url]: https://www.npmjs.com/package/haraka-plugin-geoip
