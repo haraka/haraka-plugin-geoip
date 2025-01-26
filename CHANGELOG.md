@@ -6,7 +6,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### [1.1.1] - 2025-01-26
 
-
 - doc(CONTRIBUTORS): added
 - populate [files] in package.json. Delete .npmignore.
 - style: automated formatting with prettier
