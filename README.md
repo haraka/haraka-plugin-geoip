@@ -25,13 +25,7 @@ Install the npm geoip-lite module and update the DBs:
 
 # INSTALL (maxmind)
 
-The maxmind module requires the manual download of the GeoIP databases. The npm module [maxmind-geolite-mirror][1] will download the files for you and also keep them up-to-date if you run it periodically.
-
-```bash
-mkdir -p /usr/local/share/GeoIP
-npm install -g maxmind-geolite-mirror
-/usr/local/bin/maxmind-geolite-mirror
-```
+The maxmind module requires downloading the GeoIP databases. The [geoipupdate][6] program does that job well.
 
 # DESCRIPTION
 
@@ -107,6 +101,8 @@ reality, it is not. Accuracy should be within 1%.
 [3]: https://github.com/haraka/haraka-results
 [4]: http://www.cc.gatech.edu/~feamster/papers/snare-usenix09.pdf
 [5]: https://www.npmjs.com/package/haraka-plugin-geoip
+[6]: https://maxmind.github.io/geoipupdate/
+
 [ci-img]: https://github.com/haraka/haraka-plugin-geoip/actions/workflows/ci.yml/badge.svg
 [ci-url]: https://github.com/haraka/haraka-plugin-geoip/actions/workflows/ci.yml
 [clim-img]: https://codeclimate.com/github/haraka/haraka-plugin-geoip/badges/gpa.svg
