@@ -42,7 +42,7 @@
     "@haraka/eslint-config": "^2.0.2"
   },
   "dependencies": {
-    "maxmind": "^4.3.24",
+    "maxmind": "^5.0.0",
     "haraka-net-utils": "^1.7.1"
   },
   "files": [
