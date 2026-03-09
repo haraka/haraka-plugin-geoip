@@ -8,18 +8,18 @@ const fixtures = require('haraka-test-fixtures')
 const plugin_name = 'geoip'
 
 beforeEach(async function () {
-    this.plugin = new fixtures.plugin('geoip')
+  this.plugin = new fixtures.plugin('geoip')
 
-    // Conditionally inject for coverage tracking
-    if (process.env.HARAKA_COVERAGE) {
-      const plugin_module = require('../index.js')
-      Object.assign(this.plugin, plugin_module)
-    }
+  // Conditionally inject for coverage tracking
+  if (process.env.HARAKA_COVERAGE) {
+    const plugin_module = require('../index.js')
+    Object.assign(this.plugin, plugin_module)
+  }
 
-    await this.plugin.register()
+  await this.plugin.register()
 
-    this.connection = fixtures.connection.createConnection()
-    this.connection.init_transaction()
+  this.connection = fixtures.connection.createConnection()
+  this.connection.init_transaction()
 })
 
 describe('register', function () {
