@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
   #### Added
   
-  - instrumentation to measure test coverage
+  - test: add instrumentation to measure test coverage
   - test: consolidated redundant beforeEach into one global instance
   - deps(all): bump to latest
 
