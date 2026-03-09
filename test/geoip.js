@@ -7,12 +7,22 @@ const fixtures = require('haraka-test-fixtures')
 
 const plugin_name = 'geoip'
 
-describe('register', function () {
-  beforeEach(async function () {
-    this.plugin = new fixtures.plugin('geoip')
-    await this.plugin.register()
-  })
+beforeEach(async function () {
+  this.plugin = new fixtures.plugin('geoip')
 
+  // replace vm-compiled functions with instrumented versions for coverage tracking
+  if (process.env.HARAKA_COVERAGE) {
+    const plugin_module = require('../index.js')
+    Object.assign(this.plugin, plugin_module)
+  }
+
+  await this.plugin.register()
+
+  this.connection = fixtures.connection.createConnection()
+  this.connection.init_transaction()
+})
+
+describe('register', function () {
   it('config loaded', function () {
     assert.ok(this.plugin.cfg)
     assert.ok(this.plugin.cfg.main)
@@ -33,10 +43,6 @@ describe('register', function () {
 
 describe('database lookups', function () {
   beforeEach(async function () {
-    this.plugin = new fixtures.plugin('geoip')
-    await this.plugin.register()
-    this.connection = fixtures.connection.createConnection()
-
     if (plugin_name === 'geoip') {
       this.plugin.cfg.main.dbdir = path.resolve('test', 'fixtures')
       await this.plugin.load_dbs()
@@ -86,7 +92,7 @@ describe('database lookups', function () {
 
     it('michigan: lat + long', function (done) {
       this.connection.remote.ip = '199.176.179.3'
-      this.plugin.lookup((rc) => {
+      this.plugin.lookup(() => {
         const r = this.connection.results.get('geoip')
         assert.equal('US', r.country)
         if (r.continent) assert.equal('NA', r.continent)
@@ -126,10 +132,6 @@ describe('database lookups', function () {
 })
 
 describe('haversine', function () {
-  beforeEach(function () {
-    this.plugin = new fixtures.plugin('geoip')
-  })
-
   it('WA to MI is 2000-2500km', function () {
     const r = this.plugin.haversine(47.673, -122.3419, 38, -97)
     assert.equal(r > 2000, true, r)
@@ -145,11 +147,6 @@ describe('haversine', function () {
 
 describe('received_headers', function () {
   beforeEach(async function () {
-    this.plugin = new fixtures.plugin('geoip')
-    await this.plugin.register()
-    this.connection = fixtures.connection.createConnection()
-    this.connection.init_transaction()
-
     if (plugin_name === 'geoip') {
       this.plugin.cfg.main.dbdir = path.resolve('test', 'fixtures')
       await this.plugin.load_dbs()
