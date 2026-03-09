@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   #### Added
   
   - instrumentation to measure test coverage
-  - refactored test/geoip.js
+  - test: consolidated redundant beforeEach into one global instance
   - deps(all): bump to latest
 
 ### [1.1.1] - 2025-01-26
