@@ -10,7 +10,7 @@ const plugin_name = 'geoip'
 beforeEach(async function () {
   this.plugin = new fixtures.plugin('geoip')
 
-  // Conditionally inject for coverage tracking
+  // replace vm-compiled functions with instrumented versions for coverage tracking
   if (process.env.HARAKA_COVERAGE) {
     const plugin_module = require('../index.js')
     Object.assign(this.plugin, plugin_module)
