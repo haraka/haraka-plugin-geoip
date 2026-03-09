@@ -43,8 +43,7 @@
   "homepage": "https://github.com/haraka/haraka-plugin-geoip#readme",
   "devDependencies": {
     "@haraka/eslint-config": "^2.0.3",
-    "haraka-test-fixtures": "^1.3.10",
-    "mocha": "^11.7.5"
+    "haraka-test-fixtures": "^1.3.10"
   },
   "dependencies": {
     "haraka-net-utils": "^1.7.2",
