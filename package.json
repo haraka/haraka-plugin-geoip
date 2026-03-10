@@ -15,7 +15,7 @@
     "lint:fix": "npx eslint --fix index.js test/*.js",
     "prettier": "npx prettier . --check",
     "prettier:fix": "npx prettier . --write --log-level=warn",
-    "test": "npx mocha@^11",
+    "test": "npx mocha",
     "test:coverage": "HARAKA_COVERAGE=1 npx c8 npm test",
     "versions": "npx dependency-version-checker check",
     "versions:fix": "npx dependency-version-checker update"
