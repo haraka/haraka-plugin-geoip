@@ -74,24 +74,28 @@ describe('database lookups', function () {
 
   describe('lookup', function () {
     this.timeout(4000)
-    it('seattle: lat + long', function (done) {
+    it('seattle: lat + long', async function () {
       this.connection.remote.ip = '192.48.85.146'
-      this.plugin.lookup(() => {
-        const r = this.connection.results.get('geoip')
-        assert.equal('US', r.country)
-        if (r.continent) assert.equal('NA', r.continent)
-        done()
-      }, this.connection)
+      await new Promise((resolve) => {
+        this.plugin.lookup(() => {
+          const r = this.connection.results.get('geoip')
+          assert.equal('US', r.country)
+          if (r.continent) assert.equal('NA', r.continent)
+          resolve()
+        }, this.connection)
+      })
     })
 
-    it('michigan: lat + long', function (done) {
+    it('michigan: lat + long', async function () {
       this.connection.remote.ip = '199.176.179.3'
-      this.plugin.lookup((rc) => {
-        const r = this.connection.results.get('geoip')
-        assert.equal('US', r.country)
-        if (r.continent) assert.equal('NA', r.continent)
-        done()
-      }, this.connection)
+      await new Promise((resolve) => {
+        this.plugin.lookup(() => {
+          const r = this.connection.results.get('geoip')
+          assert.equal('US', r.country)
+          if (r.continent) assert.equal('NA', r.continent)
+          resolve()
+        }, this.connection)
+      })
     })
   })
 
@@ -99,27 +103,31 @@ describe('database lookups', function () {
     // ServedBy ll: [ 47.6738, -122.3419 ],
     // WMISD  [ 38, -97 ]
 
-    it('seattle to michigan', function (done) {
+    it('seattle to michigan', async function () {
       this.plugin.cfg.main.calc_distance = true
       this.plugin.local_ip = '192.48.85.146'
       this.connection.remote.ip = '199.176.179.3'
       delete this.plugin.local_geoip
-      this.plugin.calculate_distance(this.connection, [38, -97], (err, d) => {
-        if (err) console.error(err)
-        assert.ok(d > 50 && d < 4000)
-        done()
+      await new Promise((resolve) => {
+        this.plugin.calculate_distance(this.connection, [38, -97], (err, d) => {
+          if (err) console.error(err)
+          assert.ok(d > 50 && d < 4000)
+          resolve()
+        })
       })
     })
 
-    it('congo to china', function (done) {
+    it('congo to china', async function () {
       this.plugin.cfg.main.calc_distance = true
       this.plugin.local_ip = '41.78.192.1'
       this.connection.remote.ip = '60.168.181.159'
       delete this.plugin.local_geoip
-      this.plugin.calculate_distance(this.connection, [38, -97], (err, d) => {
-        if (err) console.error(err)
-        assert.ok(d > 10000)
-        done()
+      await new Promise((resolve) => {
+        this.plugin.calculate_distance(this.connection, [38, -97], (err, d) => {
+          if (err) console.error(err)
+          assert.ok(d > 10000)
+          resolve()
+        })
       })
     })
   })
