@@ -1,24 +1,27 @@
 {
   "name": "haraka-plugin-geoip",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "provide geographic information about mail senders.",
   "main": "index.js",
   "directories": {
     "test": "test"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=20"
   },
   "scripts": {
-    "cover": "NODE_ENV=cov npx nyc --reporter=lcovonly npm run test",
     "format": "npm run prettier:fix && npm run lint:fix",
     "lint": "npx eslint index.js test/*.js",
     "lint:fix": "npx eslint --fix index.js test/*.js",
     "prettier": "npx prettier . --check",
     "prettier:fix": "npx prettier . --write --log-level=warn",
     "test": "npx mocha",
+    "test:coverage": "HARAKA_COVERAGE=1 npx c8 npm test",
     "versions": "npx dependency-version-checker check",
     "versions:fix": "npx dependency-version-checker update"
+  },
+  "c8": {
+    "reporter": ["text", "text-summary", "html"]
   },
   "repository": {
     "type": "git",
@@ -38,12 +41,12 @@
   },
   "homepage": "https://github.com/haraka/haraka-plugin-geoip#readme",
   "devDependencies": {
-    "haraka-test-fixtures": "^1.3.8",
-    "@haraka/eslint-config": "^2.0.2"
+    "@haraka/eslint-config": "^2.0.3",
+    "haraka-test-fixtures": "^1.3.10"
   },
   "dependencies": {
-    "maxmind": "^5.0.0",
-    "haraka-net-utils": "^1.7.1"
+    "haraka-net-utils": "^1.7.2",
+    "maxmind": "^5.0.5"
   },
   "files": [
     "CHANGELOG.md",
