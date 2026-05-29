@@ -4,12 +4,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
-- test: refactored against test-fixtures 1.7.0
+### [1.1.2] - 2026-05-29
 
-#### Added
-
+- feat: populate ASN (`asn`, `asn_org`) from GeoLite2-ASN.mmdb
+- fix: `data_post` hook calls `next()` when txn is missing
+- test: refactored against test-fixtures 1.7.0 (#71)
 - test: add instrumentation to measure test coverage
-- test: consolidated redundant beforeEach into one global instance
+- test: consolidated redundant beforeEach into 1 global instance
 - deps(all): bump to latest
 
 ### [1.1.1] - 2025-01-26
@@ -107,6 +108,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - README link cleanups
 
 [1.0.16]: https://github.com/haraka/haraka-plugin-geoip/releases/tag/1.0.16
-[1.0.17]: https://github.com/haraka/haraka-plugin-geoip/releases/tag/1.0.17
-[1.1.0]: https://github.com/haraka/haraka-plugin-geoip/releases/tag/1.1.0
+[1.0.17]: https://github.com/haraka/haraka-plugin-geoip/releases/tag/v1.0.17
+[1.1.0]: https://github.com/haraka/haraka-plugin-geoip/releases/tag/v1.1.0
 [1.1.1]: https://github.com/haraka/haraka-plugin-geoip/releases/tag/v1.1.1
+[1.1.2]: https://github.com/haraka/haraka-plugin-geoip/releases/tag/v1.1.2
