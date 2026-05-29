@@ -28,7 +28,7 @@ The maxmind module requires downloading the GeoIP databases. The [geoipupdate][6
 
 # DESCRIPTION
 
-GeoIP results are stored in the [haraka-results][3] object at `connection.results.get(geoip)`. The following information is typically available:
+GeoIP results are stored in the [haraka-results][3] object at `connection.results.get('geoip')`. The following information is typically available:
 
     continent: NA,
     country:   US,
