@@ -258,7 +258,9 @@ exports.get_geoip_maxmind = function (ip) {
     try {
       loc = this.cityLookup.get(ip)
     } catch {}
-  } else if (this.countryLookup) {
+  }
+
+  if (!loc && this.countryLookup) {
     try {
       loc = this.countryLookup.get(ip)
     } catch {}
