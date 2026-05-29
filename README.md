@@ -12,8 +12,8 @@ This Haraka plugin supports two geoip modules:
 
 | Plugin                        | geoip module                                          |
 | ----------------------------- | ----------------------------------------------------- |
-| [haraka-plugin-geoip][5]      | [maxmind](https://github.com/runk/node-maxmind)       |
-| [haraka-plugin-geoip-lite][2] | [geoip-lite](https://github.com/bluesmoon/node-geoip) |
+| [haraka-plugin-geoip][5]      | [maxmind](https://www.npmjs.com/package/maxmind)      |
+| [haraka-plugin-geoip-lite][2] | [geoip-lite](https://www.npmjs.com/package/geoip-lite)|
 
 # INSTALL (lite)
 
@@ -28,7 +28,7 @@ The maxmind module requires downloading the GeoIP databases. The [geoipupdate][6
 
 # DESCRIPTION
 
-GeoIP results are stored in connection.notes.geoip and the [haraka-results][3] object at `connection.results.get(geoip)`. The following information is typically available:
+GeoIP results are stored in the [haraka-results][3] object at `connection.results.get('geoip')`. The following information is typically available:
 
     continent: NA,
     country:   US,
@@ -40,6 +40,11 @@ If the GeoIP city database is available, the following may also be available:
     ll:       [37.7484, -122.4156],
     distance: 1539    // in kilometers
     range:    [ 3479299040, 3479299071 ],
+
+If the GeoIP ASN database is available, the following may also be available:
+
+    asn:      15169,
+    asn_org:  Google LLC
 
 This module also adds entries like this to your logs:
 

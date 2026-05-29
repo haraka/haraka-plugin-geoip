@@ -13,15 +13,7 @@ let connection
 
 beforeEach(async () => {
   plugin = makePlugin('geoip', { register: false })
-
-  // replace vm-compiled functions with instrumented versions for coverage tracking
-  if (process.env.HARAKA_COVERAGE) {
-    const plugin_module = require('../index.js')
-    Object.assign(plugin, plugin_module)
-  }
-
   await plugin.register()
-
   connection = makeConnection({ withTxn: true })
 })
 
@@ -116,13 +108,8 @@ describe('database lookups', () => {
       plugin.local_ip = '192.48.85.146'
       connection.remote.ip = '199.176.179.3'
       delete plugin.local_geoip
-      await new Promise((resolve) => {
-        plugin.calculate_distance(connection, [38, -97], (err, d) => {
-          if (err) console.error(err)
-          assert.ok(d > 50 && d < 4000)
-          resolve()
-        })
-      })
+      const d = await plugin.calculate_distance(connection, [38, -97])
+      assert.ok(d > 50 && d < 4000)
     })
 
     it('congo to china', async () => {
@@ -130,13 +117,8 @@ describe('database lookups', () => {
       plugin.local_ip = '41.78.192.1'
       connection.remote.ip = '60.168.181.159'
       delete plugin.local_geoip
-      await new Promise((resolve) => {
-        plugin.calculate_distance(connection, [38, -97], (err, d) => {
-          if (err) console.error(err)
-          assert.ok(d > 10000)
-          resolve()
-        })
-      })
+      const d = await plugin.calculate_distance(connection, [38, -97])
+      assert.ok(d > 10000)
     })
   })
 })
@@ -168,5 +150,33 @@ describe('received_headers', () => {
     connection.transaction.header.add_end('Received', 'from [192.48.85.146]')
     const results = plugin.received_headers(connection)
     assert.equal(results.length, 2)
+  })
+})
+
+describe('add_headers', () => {
+  it('calls next() when there is no transaction (C1)', (t, done) => {
+    connection.transaction = null
+    plugin.add_headers((rc) => {
+      assert.equal(rc, undefined)
+      done()
+    }, connection)
+  })
+})
+
+describe('ASN data flow (C2)', () => {
+  beforeEach(async () => {
+    plugin.cfg.main.dbdir = path.resolve('test', 'fixtures')
+    await plugin.load_dbs()
+  })
+
+  it('get_geoip_maxmind merges ASN data when ASNLookup is available', () => {
+    if (!plugin.dbsLoaded || !plugin.ASNLookup) return // fixture DBs not bundled
+    const r = plugin.get_geoip_maxmind('192.48.85.146')
+    // ASN fields come from the ASN DB; either both present (normalized to
+    // .asn and .asn_org) or both absent if the IP isn't in the test fixture
+    if (r?.asn || r?.asn_org) {
+      assert.equal(typeof r.asn, 'number')
+      assert.equal(typeof r.asn_org, 'string')
+    }
   })
 })

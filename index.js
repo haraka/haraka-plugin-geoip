@@ -35,7 +35,7 @@ exports.register = async function () {
 exports.register_geolite = function () {
   try {
     this.geoip = require('geoip-lite')
-  } catch (ignore) {
+  } catch {
     this.logerror(
       `unable to load geoip-lite, try\n\n\t'npm install -g geoip-lite'\n\n`,
     )
@@ -88,7 +88,7 @@ exports.load_dbs = async function () {
     }
 
     this[`${db}Lookup`] = await this.maxmind.open(dbPath, {
-      // watchForUpdates causes tests to hang unless mocha runs with --exit
+      // watchForUpdates causes tests to hang
       watchForUpdates: false,
       cache: {
         max: 1000, // max items in cache
@@ -139,7 +139,7 @@ exports.lookup = function (next, connection) {
   return this.lookup_geoip_lite(next, connection)
 }
 
-exports.lookup_geoip_lite = function (next, connection) {
+exports.lookup_geoip_lite = async function (next, connection) {
   // geoip results look like this:
   // range: [ 3479299040, 3479299071 ],
   //    country: 'US',
@@ -169,18 +169,19 @@ exports.lookup_geoip_lite = function (next, connection) {
     return next()
   }
 
-  this.calculate_distance(connection, r.ll, (err, distance) => {
-    if (distance) show.push(`${distance}km`)
-    connection.results.add(this, { human: show.join(', '), emit: true })
-    next()
-  })
+  const distance = await this.calculate_distance(connection, r.ll)
+  if (distance) show.push(`${distance}km`)
+  connection.results.add(this, { human: show.join(', '), emit: true })
+  next()
 }
 
-exports.lookup_maxmind = function (next, connection) {
+exports.lookup_maxmind = async function (next, connection) {
   const loc = this.get_geoip_maxmind(connection.remote.ip)
   if (!loc) return next()
 
   const [show, agg_res] = this.get_locales(loc)
+  if (loc.asn != null) agg_res.asn = loc.asn
+  if (loc.asn_org) agg_res.asn_org = loc.asn_org
   if (show.length === 0) return next()
 
   agg_res.human = show.join(', ')
@@ -190,17 +191,14 @@ exports.lookup_maxmind = function (next, connection) {
     return next()
   }
 
-  this.calculate_distance(connection, agg_res.ll, (err, distance) => {
-    if (err) connection.results.add(this, { err })
-
-    if (distance) {
-      agg_res.distance = distance
-      show.push(`${distance}km`)
-      agg_res.human = show.join(', ')
-    }
-    connection.results.add(this, agg_res)
-    next()
-  })
+  const distance = await this.calculate_distance(connection, agg_res.ll)
+  if (distance) {
+    agg_res.distance = distance
+    show.push(`${distance}km`)
+    agg_res.human = show.join(', ')
+  }
+  connection.results.add(this, agg_res)
+  next()
 }
 
 exports.get_geoip = function (ip) {
@@ -255,21 +253,40 @@ exports.get_geoip_maxmind = function (ip) {
   if (!this.maxmind) return
   if (!this.dbsLoaded) return
 
+  let loc
   if (this.cityLookup) {
     try {
-      return this.cityLookup.get(ip)
-    } catch (ignore) {}
+      loc = this.cityLookup.get(ip)
+    } catch {}
   }
-  if (this.countryLookup) {
+
+  if (!loc && this.countryLookup) {
     try {
-      return this.countryLookup.get(ip)
-    } catch (ignore) {}
+      loc = this.countryLookup.get(ip)
+    } catch {}
   }
+
+  if (this.ASNLookup) {
+    try {
+      const asn = this.ASNLookup.get(ip)
+      if (asn) {
+        loc = loc || {}
+        if (asn.autonomous_system_number != null) {
+          loc.asn = asn.autonomous_system_number
+        }
+        if (asn.autonomous_system_organization) {
+          loc.asn_org = asn.autonomous_system_organization
+        }
+      }
+    } catch {}
+  }
+
+  return loc
 }
 
 exports.add_headers = function (next, connection) {
   const txn = connection.transaction
-  if (!txn) return
+  if (!txn) return next()
 
   txn.remove_header('X-Haraka-GeoIP')
   txn.remove_header('X-Haraka-GeoIP-Received')
@@ -318,38 +335,34 @@ exports.get_local_geo = function (ip, connection) {
   }
 }
 
-exports.calculate_distance = function (connection, rll, done) {
-  const plugin = this
-
-  function cb(err, l_ip) {
-    if (err) {
-      connection.results.add(plugin, { err })
-      connection.logerror(plugin, err)
+exports.calculate_distance = async function (connection, rll) {
+  let l_ip = this.local_ip
+  if (!l_ip) {
+    try {
+      l_ip = await net_utils.get_public_ip()
+    } catch (err) {
+      connection.results.add(this, { err })
     }
-
-    plugin.get_local_geo(l_ip, connection)
-    if (!plugin.local_ip || !plugin.local_geoip) return done()
-
-    // maxmind has 'location' property, geoip-lite doesn't
-    const gl = plugin.local_geoip.location
-      ? plugin.local_geoip.location
-      : plugin.local_geoip
-    const gcd = plugin.haversine(gl.latitude, gl.longitude, rll[0], rll[1])
-    if (gcd && isNaN(gcd)) return done()
-
-    connection.results.add(plugin, { distance: gcd })
-
-    if (
-      plugin.cfg.main.too_far &&
-      parseFloat(plugin.cfg.main.too_far) < parseFloat(gcd)
-    ) {
-      connection.results.add(plugin, { too_far: true })
-    }
-    done(err, gcd)
   }
 
-  if (plugin.local_ip) return cb(null, plugin.local_ip)
-  net_utils.get_public_ip(cb)
+  this.get_local_geo(l_ip, connection)
+  if (!this.local_ip || !this.local_geoip) return
+
+  const gl = this.local_geoip.location
+    ? this.local_geoip.location
+    : this.local_geoip
+  const gcd = this.haversine(gl.latitude, gl.longitude, rll[0], rll[1])
+  if (gcd && isNaN(gcd)) return
+
+  connection.results.add(this, { distance: gcd })
+
+  if (
+    this.cfg.main.too_far &&
+    parseFloat(this.cfg.main.too_far) < parseFloat(gcd)
+  ) {
+    connection.results.add(this, { too_far: true })
+  }
+  return gcd
 }
 
 exports.haversine = function (lat1, lon1, lat2, lon2) {
