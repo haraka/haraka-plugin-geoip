@@ -1,7 +1,6 @@
-[![Build Status][ci-img]][ci-url]
-[![Code Climate][clim-img]][clim-url]
-
 # haraka-plugin-geoip
+
+[![Test][ci-img]][ci-url] [![Cover][cov-img]][cov-url] [![Qlty][qlty-img]][qlty-url]
 
 provide geographic information about mail senders.
 
@@ -96,14 +95,17 @@ reality, it is not. Accuracy should be within 1%.
 - [MaxMind](http://www.maxmind.com/)
 - [Databases](http://geolite.maxmind.com/download/geoip/database)
 
+<!-- leave these buried at the bottom of the document -->
+
+[ci-img]: https://github.com/haraka/haraka-plugin-geoip/actions/workflows/ci.yml/badge.svg
+[ci-url]: https://github.com/haraka/haraka-plugin-geoip/actions/workflows/ci.yml
+[cov-img]: https://codecov.io/github/haraka/haraka-plugin-geoip/coverage.svg
+[cov-url]: https://codecov.io/github/haraka/haraka-plugin-geoip
+[qlty-img]: https://qlty.sh/gh/haraka/projects/haraka-plugin-geoip/maintainability.svg
+[qlty-url]: https://qlty.sh/gh/haraka/projects/haraka-plugin-geoip
 [1]: https://github.com/msimerson/maxmind-geolite-mirror
 [2]: https://www.npmjs.com/package/haraka-plugin-geoip-lite
 [3]: https://github.com/haraka/haraka-results
 [4]: http://www.cc.gatech.edu/~feamster/papers/snare-usenix09.pdf
 [5]: https://www.npmjs.com/package/haraka-plugin-geoip
 [6]: https://maxmind.github.io/geoipupdate/
-
-[ci-img]: https://github.com/haraka/haraka-plugin-geoip/actions/workflows/ci.yml/badge.svg
-[ci-url]: https://github.com/haraka/haraka-plugin-geoip/actions/workflows/ci.yml
-[clim-img]: https://codeclimate.com/github/haraka/haraka-plugin-geoip/badges/gpa.svg
-[clim-url]: https://codeclimate.com/github/haraka/haraka-plugin-geoip

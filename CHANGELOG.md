@@ -4,11 +4,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
-  #### Added
-  
-  - test: add instrumentation to measure test coverage
-  - test: consolidated redundant beforeEach into one global instance
-  - deps(all): bump to latest
+- test: refactored against test-fixtures 1.7.0
+
+#### Added
+
+- test: add instrumentation to measure test coverage
+- test: consolidated redundant beforeEach into one global instance
+- deps(all): bump to latest
 
 ### [1.1.1] - 2025-01-26
 
